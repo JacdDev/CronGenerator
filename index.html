@@ -1,0 +1,15 @@
+<html>
+	<head>
+		<script src="jquery-3.4.1.min.js"></script>
+		<script src="cronGenerator.js"></script>
+	</head>
+	<body>
+		<div id="cronComponent"></div>
+		<script>
+			var cronComponent = $("#conComponent").cronGenerator({
+				initial:"* * * * * *"
+			});
+			console.log(cronComponent.getValue());
+		</script>
+	</body>
+</html>
