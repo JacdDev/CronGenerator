@@ -1,19 +1,38 @@
 (function($) {
 
-    //TODO create structure of visual generator
-    function makeConfigurator(element, options){
+    //Create a UUIDv4
+    function create_UUID(){
+        var dt = new Date().getTime();
+        var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = (dt + Math.random()*16)%16 | 0;
+            dt = Math.floor(dt/16);
+            return (c=='x' ? r :(r&0x3|0x8)).toString(16);
+        });
+        return uuid;
+    }
 
-        //TODO add jqueryui
+    //TODO create structure of visual generator
+    function makeConfigurator(element, cronGenerator){
+
         if(element.getElementsByClassName("tabsCronGenerator").length == 0){
             var tabs = $('<div class="tabsCronGenerator">').appendTo(element);
-            var tabOptions = $('<div class="tabsCronGenerator">').appendTo(tabs);
-            $('<li><a href="#tabs-seconds">Segundos</li>').appendTo(tabOptions);
-            $('<li><a href="#tabs-minutes">Minutos</li>').appendTo(tabOptions);
-            $('<li><a href="#tabs-hours">Horas</li>').appendTo(tabOptions);
-            $('<li><a href="#tabs-days">Días</li>').appendTo(tabOptions);
-            $('<li><a href="#tabs-daysOfWeek">Días de la semana</li>').appendTo(tabOptions);
-            $('<li><a href="#tabs-months">Meses</li>').appendTo(tabOptions);
-            $('<li><a href="#tabs-years">Años</li>').appendTo(tabOptions);
+            var tabOptions = $('<ul>').appendTo(tabs);
+            $('<li><a href="#tabs-seconds-'+cronGenerator.uuid+'">Segundos</li>').appendTo(tabOptions);
+            $('<li><a href="#tabs-minutes-'+cronGenerator.uuid+'">Minutos</li>').appendTo(tabOptions);
+            $('<li><a href="#tabs-hours-'+cronGenerator.uuid+'">Horas</li>').appendTo(tabOptions);
+            $('<li><a href="#tabs-days-'+cronGenerator.uuid+'">Días</li>').appendTo(tabOptions);
+            $('<li><a href="#tabs-daysOfWeek-'+cronGenerator.uuid+'">Días de la semana</li>').appendTo(tabOptions);
+            $('<li><a href="#tabs-months-'+cronGenerator.uuid+'">Meses</li>').appendTo(tabOptions);
+            $('<li><a href="#tabs-years-'+cronGenerator.uuid+'">Años</li>').appendTo(tabOptions);
+            
+            $('<div id="tabs-seconds-'+cronGenerator.uuid+'"><p>seconds</p></div>').appendTo(tabs);
+            $('<div id="tabs-minutes-'+cronGenerator.uuid+'"><p>minutes</p></div>').appendTo(tabs);
+            $('<div id="tabs-hours-'+cronGenerator.uuid+'"><p>hours</p></div>').appendTo(tabs);
+            $('<div id="tabs-days-'+cronGenerator.uuid+'"><p>days</p></div>').appendTo(tabs);
+            $('<div id="tabs-daysOfWeek-'+cronGenerator.uuid+'"><p>daysOfWeek</p></div>').appendTo(tabs);
+            $('<div id="tabs-months-'+cronGenerator.uuid+'"><p>months</p></div>').appendTo(tabs);
+            $('<div id="tabs-years-'+cronGenerator.uuid+'"><p>years</p></div>').appendTo(tabs);
+
             tabs.tabs();
         }
     }
@@ -60,10 +79,12 @@
             years       : $.extend({}, defaultOptions.years, allOptions, options.years),
         });
 
+        this.uuid=create_UUID();
         this.element = element;
         this.value=allOptions.initial;
+        this.allOptions=allOptions;
 
-        makeConfigurator(element,allOptions);
+        makeConfigurator(element,this);
     };
 
     CronGenerator.prototype.getValue = function () {
