@@ -1,12 +1,21 @@
 (function($) {
 
     //TODO create structure of visual generator
-    function makeConfigurator(cronGenerator,options){
-$('<div class="tab">').appendTo(cronGenerator);
-$('<button class="tablinks" onclick="openTab(event, ""seconds"")">Seconds</button>').appendTo(cronGenerator);
-$('<button class="tablinks" onclick="openCity(event, ""minutes"")">Minutes</button>').appendTo(cronGenerator);
-$('<button class="tablinks" onclick="openCity(event, ""Tokyo"")">Hours</button>').appendTo(cronGenerator);
-$('</div>').appendTo(cronGenerator);
+    function makeConfigurator(element, options){
+
+        //TODO add jqueryui
+        if(element.getElementsByClassName("tabsCronGenerator").length == 0){
+            var tabs = $('<div class="tabsCronGenerator">').appendTo(element);
+            var tabOptions = $('<div class="tabsCronGenerator">').appendTo(tabs);
+            $('<li><a href="#tabs-seconds">Segundos</li>').appendTo(tabOptions);
+            $('<li><a href="#tabs-minutes">Minutos</li>').appendTo(tabOptions);
+            $('<li><a href="#tabs-hours">Horas</li>').appendTo(tabOptions);
+            $('<li><a href="#tabs-days">Días</li>').appendTo(tabOptions);
+            $('<li><a href="#tabs-daysOfWeek">Días de la semana</li>').appendTo(tabOptions);
+            $('<li><a href="#tabs-months">Meses</li>').appendTo(tabOptions);
+            $('<li><a href="#tabs-years">Años</li>').appendTo(tabOptions);
+            tabs.tabs();
+        }
     }
 
 	var defaultOptions = {
@@ -23,7 +32,7 @@ $('</div>').appendTo(cronGenerator);
         days : {
             allowConfigure  : true,
         },
-        daysOfWeek : { //TODO delete this option?
+        daysOfWeek : {
             allowConfigure  : true,
         },
         months : {
@@ -36,7 +45,7 @@ $('</div>').appendTo(cronGenerator);
         onChange: undefined
 	};
 
-    function CronGenerator($this, opts) {
+    function CronGenerator(element, opts) {
 
         //initialize options with user options and default options
         var options = opts ? opts : {};
@@ -51,10 +60,10 @@ $('</div>').appendTo(cronGenerator);
             years       : $.extend({}, defaultOptions.years, allOptions, options.years),
         });
 
-        this.element = $this;
+        this.element = element;
         this.value=allOptions.initial;
 
-        //makeConfigurator(this,allOptions);
+        makeConfigurator(element,allOptions);
     };
 
     CronGenerator.prototype.getValue = function () {
