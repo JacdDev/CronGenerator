@@ -4,12 +4,18 @@
 		<script src="cronGenerator.js"></script>
 	</head>
 	<body>
-		<div id="cronComponent"></div>
+		<div id="cronComponent1" class="cronComponent"></div>
+		<div id="cronComponent2" class="cronComponent"></div>
 		<script>
-			var cronComponent = $("#conComponent").cronGenerator({
-				initial:"* * * * * *"
+			var manyCronComponent = $(".cronComponent").cronGenerator({
+				initial:"0 * * * * *"
 			});
-			console.log(cronComponent.getValue());
+			var singleCronComponent = $("#cronComponent1").cronGenerator({
+				initial:"0 * * * * *"
+			});
+			console.log(manyCronComponent[0].getValue());
+			console.log(manyCronComponent[1].getValue());
+			console.log(singleCronComponent.getValue());
 		</script>
 	</body>
 </html>
