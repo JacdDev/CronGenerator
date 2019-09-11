@@ -15,25 +15,26 @@
     function makeConfigurator(element, cronGenerator){
 
         if(element.getElementsByClassName("tabsCronGenerator").length == 0){
-            var tabs = $('<div class="tabsCronGenerator">').appendTo(element);
-            var tabOptions = $('<ul>').appendTo(tabs);
-            $('<li><a href="#tabs-seconds-'+cronGenerator.uuid+'">Segundos</li>').appendTo(tabOptions);
-            $('<li><a href="#tabs-minutes-'+cronGenerator.uuid+'">Minutos</li>').appendTo(tabOptions);
-            $('<li><a href="#tabs-hours-'+cronGenerator.uuid+'">Horas</li>').appendTo(tabOptions);
-            $('<li><a href="#tabs-days-'+cronGenerator.uuid+'">Días</li>').appendTo(tabOptions);
-            $('<li><a href="#tabs-daysOfWeek-'+cronGenerator.uuid+'">Días de la semana</li>').appendTo(tabOptions);
-            $('<li><a href="#tabs-months-'+cronGenerator.uuid+'">Meses</li>').appendTo(tabOptions);
-            $('<li><a href="#tabs-years-'+cronGenerator.uuid+'">Años</li>').appendTo(tabOptions);
+            var tabs = $('<div class="tabsCronGenerator"></div>').appendTo(element);
+            var tabOptions = $('<ul class="nav nav-tabs" role="tablist"></ul>').appendTo(tabs);
+            $('<li class="nav-item"><a class="nav-link active" data-toggle="tab" role="tab" href="#tabs-seconds-'+cronGenerator.uuid+'">Segundos</a></li>').appendTo(tabOptions);
+            $('<li class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-minutes-'+cronGenerator.uuid+'">Minutos</a></li>').appendTo(tabOptions);
+            $('<li class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-hours-'+cronGenerator.uuid+'">Horas</a></li>').appendTo(tabOptions);
+            $('<li class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-days-'+cronGenerator.uuid+'">Días</a></li>').appendTo(tabOptions);
+            $('<li class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-daysOfWeek-'+cronGenerator.uuid+'">Días de la semana</a></li>').appendTo(tabOptions);
+            $('<li class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-months-'+cronGenerator.uuid+'">Meses</a></li>').appendTo(tabOptions);
+            $('<li class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-years-'+cronGenerator.uuid+'">Años</a></li>').appendTo(tabOptions);
             
-            $('<div id="tabs-seconds-'+cronGenerator.uuid+'"><p>seconds</p></div>').appendTo(tabs);
-            $('<div id="tabs-minutes-'+cronGenerator.uuid+'"><p>minutes</p></div>').appendTo(tabs);
-            $('<div id="tabs-hours-'+cronGenerator.uuid+'"><p>hours</p></div>').appendTo(tabs);
-            $('<div id="tabs-days-'+cronGenerator.uuid+'"><p>days</p></div>').appendTo(tabs);
-            $('<div id="tabs-daysOfWeek-'+cronGenerator.uuid+'"><p>daysOfWeek</p></div>').appendTo(tabs);
-            $('<div id="tabs-months-'+cronGenerator.uuid+'"><p>months</p></div>').appendTo(tabs);
-            $('<div id="tabs-years-'+cronGenerator.uuid+'"><p>years</p></div>').appendTo(tabs);
+            var tabsContent= $('<div class="tab-content"></div>').appendTo(tabs);
+            $('<div class="tab-pane fade show active" role="tabpanel" id="tabs-seconds-'+cronGenerator.uuid+'"><p>seconds</p></div>').appendTo(tabsContent);
+            $('<div class="tab-pane fade" role="tabpanel" id="tabs-minutes-'+cronGenerator.uuid+'"><p>minutes</p></div>').appendTo(tabsContent);
+            $('<div class="tab-pane fade" role="tabpanel" id="tabs-hours-'+cronGenerator.uuid+'"><p>hours</p></div>').appendTo(tabsContent);
+            $('<div class="tab-pane fade" role="tabpanel" id="tabs-days-'+cronGenerator.uuid+'"><p>days</p></div>').appendTo(tabsContent);
+            $('<div class="tab-pane fade" role="tabpanel" id="tabs-daysOfWeek-'+cronGenerator.uuid+'"><p>daysOfWeek</p></div>').appendTo(tabsContent);
+            $('<div class="tab-pane fade" role="tabpanel" id="tabs-months-'+cronGenerator.uuid+'"><p>months</p></div>').appendTo(tabsContent);
+            $('<div class="tab-pane fade" role="tabpanel" id="tabs-years-'+cronGenerator.uuid+'"><p>years</p></div>').appendTo(tabsContent);
 
-            tabs.tabs();
+            tabOptions.tab()
         }
     }
 
