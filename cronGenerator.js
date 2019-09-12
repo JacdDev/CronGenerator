@@ -11,31 +11,69 @@
         return uuid;
     }
 
-    //TODO create structure of visual generator
-    function makeConfigurator(element, cronGenerator){
+    function newAccordionCard(cronGenerator, id) {
+        var card = {};
+        var referedId = id + '-' + cronGenerator.uuid;
 
-        if(element.getElementsByClassName("tabsCronGenerator").length == 0){
-            var tabs = $('<div class="tabsCronGenerator"></div>').appendTo(element);
-            var tabOptions = $('<ul class="nav nav-tabs" role="tablist"></ul>').appendTo(tabs);
-            $('<li class="nav-item"><a class="nav-link active" data-toggle="tab" role="tab" href="#tabs-seconds-'+cronGenerator.uuid+'">Segundos</a></li>').appendTo(tabOptions);
-            $('<li class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-minutes-'+cronGenerator.uuid+'">Minutos</a></li>').appendTo(tabOptions);
-            $('<li class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-hours-'+cronGenerator.uuid+'">Horas</a></li>').appendTo(tabOptions);
-            $('<li class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-days-'+cronGenerator.uuid+'">Días</a></li>').appendTo(tabOptions);
-            $('<li class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-daysOfWeek-'+cronGenerator.uuid+'">Días de la semana</a></li>').appendTo(tabOptions);
-            $('<li class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-months-'+cronGenerator.uuid+'">Meses</a></li>').appendTo(tabOptions);
-            $('<li class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-years-'+cronGenerator.uuid+'">Años</a></li>').appendTo(tabOptions);
+        card.jqueryElement = $('<div class="card"></div>');
+        
+        // Header
+        card.header = $('<button class="btn btn-link btn-sm" data-toggle="collapse" data-target="#collapse-'+referedId+'" aria-expanded="false" aria-controls="collapse-'+referedId+'"></button>');
+        card.jqueryElement.append(
+            $('<div class="card-header" id="heading-'+referedId+'"><em class="fas fa-chevron-right"></em></div>')
+                .on('click', function(event){
+                    $(event.target).find('button').click();
+                })
+                .append(card.header)
+        );
+
+        // Body
+        card.body = $('<div class="card-body"></div>');
+        card.jqueryElement.append(
+            $('<div id="collapse-'+referedId+'" class="collapse" aria-labelledby="heading-'+referedId+'" data-parent="#accordion-'+cronGenerator.uuid+'"></div>')
+                .on('hide.bs.collapse show.bs.collapse', function (event) {
+                    if ($(this).is(event.target)) {
+                        $(event.target)
+                            .parents('.card:first')
+                            .find('.card-header:first em')
+                            .toggleClass("fa-chevron-down fa-chevron-right");
             
-            var tabsContent= $('<div class="tab-content"></div>').appendTo(tabs);
-            $('<div class="tab-pane fade show active" role="tabpanel" id="tabs-seconds-'+cronGenerator.uuid+'"><p>seconds</p></div>').appendTo(tabsContent);
-            $('<div class="tab-pane fade" role="tabpanel" id="tabs-minutes-'+cronGenerator.uuid+'"><p>minutes</p></div>').appendTo(tabsContent);
-            $('<div class="tab-pane fade" role="tabpanel" id="tabs-hours-'+cronGenerator.uuid+'"><p>hours</p></div>').appendTo(tabsContent);
-            $('<div class="tab-pane fade" role="tabpanel" id="tabs-days-'+cronGenerator.uuid+'"><p>days</p></div>').appendTo(tabsContent);
-            $('<div class="tab-pane fade" role="tabpanel" id="tabs-daysOfWeek-'+cronGenerator.uuid+'"><p>daysOfWeek</p></div>').appendTo(tabsContent);
-            $('<div class="tab-pane fade" role="tabpanel" id="tabs-months-'+cronGenerator.uuid+'"><p>months</p></div>').appendTo(tabsContent);
-            $('<div class="tab-pane fade" role="tabpanel" id="tabs-years-'+cronGenerator.uuid+'"><p>years</p></div>').appendTo(tabsContent);
+                        if (event.type == 'hide') {
+                            $(event.target).find('.collapse').collapse('hide');
+                        }
+                    }
+            
+                })
+                .append(card.body)
+        );
+        
+        cronGenerator.accordion.append(card.jqueryElement);
 
-            tabOptions.tab()
-        }
+        return card;
+    }
+
+    //TODO create structure of visual generator
+    function makeConfigurator(cronGenerator){
+        cronGenerator.jqueryElement.data('id', this.uuid);
+
+        cronGenerator.accordion = $('<div class="accordion" id="accordion-'+cronGenerator.uuid+'"></div>');
+
+        // Seconds
+        var secondCard = newAccordionCard(cronGenerator, 'seconds');
+        secondCard.header.text('SEGUNDOS')
+        secondCard.body.text('segundos')
+
+        // Minutos
+        var secondCard = newAccordionCard(cronGenerator, 'minuts');
+        secondCard.header.text('MINUTOS')
+        secondCard.body.text('minutos')
+
+        // Horas
+        var secondCard = newAccordionCard(cronGenerator, 'hours');
+        secondCard.header.text('HORAS')
+        secondCard.body.text('Te digo que si, que son horas')
+
+        cronGenerator.jqueryElement.append(cronGenerator.accordion);
     }
 
 	var defaultOptions = {
@@ -82,10 +120,11 @@
 
         this.uuid=create_UUID();
         this.element = element;
+        this.jqueryElement=$(element)
         this.value=allOptions.initial;
         this.allOptions=allOptions;
 
-        makeConfigurator(element,this);
+        makeConfigurator(this);
     };
 
     CronGenerator.prototype.getValue = function () {
@@ -105,7 +144,7 @@
             cronGenerators.push(new CronGenerator(this, options));
         });
 
-        //TODO retuns always the list?
+        // TODO: retuns always the list?
         if(cronGenerators.length==1)
             return cronGenerators[0];
         else
