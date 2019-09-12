@@ -52,11 +52,70 @@
         return card;
     }
 
+    function makeSwitch({id, checked} = {id: null, checked: false}) {
+        return $(`
+            <div class="onoffswitch">
+                <input type="checkbox" name="${id}" class="onoffswitch-checkbox" id="${id}" disabled ${ checked ? 'checked' :'' }>
+                <label class="onoffswitch-label" for="${id}">
+                    <span class="onoffswitch-inner"></span>
+                    <span class="onoffswitch-switch"></span>
+                </label>
+            </div>
+        `);
+
+    }
+
+    function makeSecondsSection(cronGenerator){
+        return $(`
+            <label>Cada <input type="text" maxlength="2" size="2" value="1" name="seconds-${cronGenerator.uuid}" /> segundo/s</label>
+        `);
+    }
+
+    function makeMinutesSection(cronGenerator){
+        let repeatMinutes = $('<div class="minutes-subsection minutes-repeat inline"></div>')
+            .append(makeSwitch({checked: true}))
+            .append($(`
+                <label>Cada <input type="text" maxlength="2" size="2" value="1" name="minutes-${cronGenerator.uuid}" /> minuto/s
+                entre el minuto <input type="text" maxlength="2" size="2" value="0" name="start-minute-${cronGenerator.uuid}" />
+                y <input type="text" maxlength="2" size="2" value="59" name="end-minute-${cronGenerator.uuid}" /></label>
+            `));
+
+        let selectMinutes = $('<div class="minutes-subsection select-minutes inline"></div>')
+            .append(makeSwitch())
+            .append($(`
+                <label>El/Los minuto/s <input type="text" size="20" value="" name="minutes-${cronGenerator.uuid}" />
+            `));
+
+        
+        let minutes = $('<div></div>')
+            .append(repeatMinutes)
+            .append(selectMinutes);
+
+        minutes.find('input').on('focus', function(event){
+            let minutesRepeat = $(event.target).parents('.minutes-subsection');
+            let card = minutesRepeat.parent();
+            let checkbox = minutesRepeat.find('.onoffswitch-checkbox').prop("checked", true);
+            card.find('.onoffswitch-checkbox').not(checkbox).prop("checked", false);
+        });
+    
+        return minutes;
+    }
+
+    function makeHoursSection(cronGenerator){
+        return $('<div class="minutes-repeat"></div>')
+            .append(makeSwitch())
+            .append($(`
+                <label>Cada <input type="text" maxlength="2" size="2" value="1" name="hours-${cronGenerator.uuid}" /> hora/s
+                 entre la hora <input type="text" maxlength="2" size="2" value="0" name="start-hour-${cronGenerator.uuid}" />
+                 y <input type="text" maxlength="2" size="2" value="23" name="end-hour-${cronGenerator.uuid}" /></label>
+            `));
+    }
+
     //TODO create structure of visual generator
     function makeConfigurator(cronGenerator){
         cronGenerator.jqueryElement.data('id', this.uuid);
 
-        cronGenerator.accordion = $('<div class="accordion" id="accordion-'+cronGenerator.uuid+'"></div>');
+        cronGenerator.accordion = $('<div class="cron-component accordion" id="accordion-'+cronGenerator.uuid+'"></div>');
         
         // Seconds
         if (cronGenerator.allOptions.seconds.allowConfigure){
