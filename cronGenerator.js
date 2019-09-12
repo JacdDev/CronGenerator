@@ -2,9 +2,9 @@
 
     //Create a UUIDv4
     function create_UUID(){
-        var dt = new Date().getTime();
-        var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-            var r = (dt + Math.random()*16)%16 | 0;
+        let dt = new Date().getTime();
+        let uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            let r = (dt + Math.random()*16)%16 | 0;
             dt = Math.floor(dt/16);
             return (c=='x' ? r :(r&0x3|0x8)).toString(16);
         });
@@ -12,8 +12,8 @@
     }
 
     function newAccordionCard(cronGenerator, id) {
-        var card = {};
-        var referedId = id + '-' + cronGenerator.uuid;
+        let card = {};
+        let referedId = id + '-' + cronGenerator.uuid;
 
         card.jqueryElement = $('<div class="card"></div>');
         
@@ -60,63 +60,62 @@
         
         // Seconds
         if (cronGenerator.allOptions.seconds.allowConfigure){
-            var secondCard = newAccordionCard(cronGenerator, 'seconds');
-            secondCard.header.text('SEGUNDOS')
-            secondCard.body.text('segundos')
+            let card = newAccordionCard(cronGenerator, 'seconds');
+            card.header.text('SEGUNDOS')
+            card.body.html(makeSecondsSection(cronGenerator))
         }
 
         // Minutes
         if (cronGenerator.allOptions.minutes.allowConfigure){
-            var secondCard = newAccordionCard(cronGenerator, 'minutes');
-            secondCard.header.text('MINUTOS')
-            secondCard.body.text('minutos')
+            let card = newAccordionCard(cronGenerator, 'minutes');
+            card.header.text('MINUTOS')
+            card.body.html(makeMinutesSection(cronGenerator))
         }
 
         // Hours
         if (cronGenerator.allOptions.hours.allowConfigure){
-            var secondCard = newAccordionCard(cronGenerator, 'hours');
-            secondCard.header.text('HORAS')
-            secondCard.body.text('horas')
+            let card = newAccordionCard(cronGenerator, 'hours');
+            card.header.text('HORAS')
+            card.body.html(makeHoursSection(cronGenerator))
         }
 
         // Days
         if (cronGenerator.allOptions.days.allowConfigure){
-            var secondCard = newAccordionCard(cronGenerator, 'days');
-            secondCard.header.text('DÍAS')
-            secondCard.body.text('Días')
+            let card = newAccordionCard(cronGenerator, 'days');
+            card.header.text('DÍAS')
+            card.body.text('Días')
         }
 
         // Days of Week
         if (cronGenerator.allOptions.daysOfWeek.allowConfigure){
-            var secondCard = newAccordionCard(cronGenerator, 'days-week');
-            secondCard.header.text('DÍAS DE LA SEMANA')
-            secondCard.body.text('Días de la semana')
+            let card = newAccordionCard(cronGenerator, 'days-week');
+            card.header.text('DÍAS DE LA SEMANA')
+            card.body.text('Días de la semana')
         }
 
         // Months
         if (cronGenerator.allOptions.months.allowConfigure){
-            var secondCard = newAccordionCard(cronGenerator, 'months');
-            secondCard.header.text('MESES')
-            secondCard.body.text('Meses')
+            let card = newAccordionCard(cronGenerator, 'months');
+            card.header.text('MESES')
+            card.body.text('Meses')
         }
 
         // Years
         if (cronGenerator.allOptions.years.allowConfigure){
-            var secondCard = newAccordionCard(cronGenerator, 'years');
-            secondCard.header.text('AÑOS')
-            secondCard.body.text('Años')
+            let card = newAccordionCard(cronGenerator, 'years');
+            card.header.text('AÑOS')
+            card.body.text('Años')
         }
 
         // Result
         cronGenerator.resultJquery = $('<div class="result"></div>');
-        cronGenerator.resultJquery.text(cronGenerator.value)
+        cronGenerator.resultJquery.text(cronGenerator.value);
 
-        cronGenerator.jqueryElement
-            .append(cronGenerator.accordion)
-            .append(cronGenerator.resultJquery);
+        cronGenerator.accordion.append(cronGenerator.resultJquery);
+        cronGenerator.jqueryElement.append(cronGenerator.accordion);
     }
 
-	var defaultOptions = {
+	let defaultOptions = {
         initial : "* * * * * *",
         seconds : {
             allowConfigure  : true,
@@ -143,20 +142,8 @@
         onChange: undefined
 	};
 
-    function CronGenerator(element, opts) {
-
-        //initialize options with user options and default options
-        var options = opts ? opts : {};
-        var allOptions = $.extend([], defaultOptions, options);
-        $.extend(allOptions, {
-            seconds     : $.extend({}, defaultOptions.seconds, allOptions, options.seconds),
-            minutes     : $.extend({}, defaultOptions.minutes, allOptions, options.minutes),
-            hours       : $.extend({}, defaultOptions.hours, allOptions, options.hours),
-            days        : $.extend({}, defaultOptions.days, allOptions, options.days),
-            daysOfWeek  : $.extend({}, defaultOptions.daysOfWeek, allOptions, options.daysOfWeek),
-            months      : $.extend({}, defaultOptions.months, allOptions, options.months),
-            years       : $.extend({}, defaultOptions.years, allOptions, options.years),
-        });
+    function CronGenerator(element, opts = {}) {
+        let allOptions = {...defaultOptions, ...opts}
 
         this.uuid=create_UUID();
         this.element = element;
