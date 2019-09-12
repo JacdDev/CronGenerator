@@ -57,23 +57,63 @@
         cronGenerator.jqueryElement.data('id', this.uuid);
 
         cronGenerator.accordion = $('<div class="accordion" id="accordion-'+cronGenerator.uuid+'"></div>');
-
+        
         // Seconds
-        var secondCard = newAccordionCard(cronGenerator, 'seconds');
-        secondCard.header.text('SEGUNDOS')
-        secondCard.body.text('segundos')
+        if (cronGenerator.allOptions.seconds.allowConfigure){
+            var secondCard = newAccordionCard(cronGenerator, 'seconds');
+            secondCard.header.text('SEGUNDOS')
+            secondCard.body.text('segundos')
+        }
 
-        // Minutos
-        var secondCard = newAccordionCard(cronGenerator, 'minuts');
-        secondCard.header.text('MINUTOS')
-        secondCard.body.text('minutos')
+        // Minutes
+        if (cronGenerator.allOptions.minutes.allowConfigure){
+            var secondCard = newAccordionCard(cronGenerator, 'minutes');
+            secondCard.header.text('MINUTOS')
+            secondCard.body.text('minutos')
+        }
 
-        // Horas
-        var secondCard = newAccordionCard(cronGenerator, 'hours');
-        secondCard.header.text('HORAS')
-        secondCard.body.text('Te digo que si, que son horas')
+        // Hours
+        if (cronGenerator.allOptions.hours.allowConfigure){
+            var secondCard = newAccordionCard(cronGenerator, 'hours');
+            secondCard.header.text('HORAS')
+            secondCard.body.text('horas')
+        }
 
-        cronGenerator.jqueryElement.append(cronGenerator.accordion);
+        // Days
+        if (cronGenerator.allOptions.days.allowConfigure){
+            var secondCard = newAccordionCard(cronGenerator, 'days');
+            secondCard.header.text('DÍAS')
+            secondCard.body.text('Días')
+        }
+
+        // Days of Week
+        if (cronGenerator.allOptions.daysOfWeek.allowConfigure){
+            var secondCard = newAccordionCard(cronGenerator, 'days-week');
+            secondCard.header.text('DÍAS DE LA SEMANA')
+            secondCard.body.text('Días de la semana')
+        }
+
+        // Months
+        if (cronGenerator.allOptions.months.allowConfigure){
+            var secondCard = newAccordionCard(cronGenerator, 'months');
+            secondCard.header.text('MESES')
+            secondCard.body.text('Meses')
+        }
+
+        // Years
+        if (cronGenerator.allOptions.years.allowConfigure){
+            var secondCard = newAccordionCard(cronGenerator, 'years');
+            secondCard.header.text('AÑOS')
+            secondCard.body.text('Años')
+        }
+
+        // Result
+        cronGenerator.resultJquery = $('<div class="result"></div>');
+        cronGenerator.resultJquery.text(cronGenerator.value)
+
+        cronGenerator.jqueryElement
+            .append(cronGenerator.accordion)
+            .append(cronGenerator.resultJquery);
     }
 
 	var defaultOptions = {

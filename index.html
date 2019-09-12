@@ -17,18 +17,18 @@
 		<link rel="stylesheet" href="cronGenerator.css">
 	</head>
 	<body>
-		<div id="cronComponent1" class="cronComponent"></div>
+		<div id="cronComponent1" class="cronComponent" style="padding:10px;"></div>
 		<div id="cronComponent2" class="cronComponent"></div>
 		<script>
-			var manyCronComponent = $(".cronComponent").cronGenerator({
-				initial:"0 * * * * *"
-			});
 			var singleCronComponent = $("#cronComponent1").cronGenerator({
-				initial:"0 * * * * *"
+				initial:"0 * * * * *",
+				seconds: {
+					allowConfigure : false,
+				},
+				years: {
+					allowConfigure : false,
+				},
 			});
-			console.log(manyCronComponent[0].getValue());
-			console.log(manyCronComponent[1].getValue());
-			console.log(singleCronComponent.getValue());
 		</script>
 	</body>
 </html>

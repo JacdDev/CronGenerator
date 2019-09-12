@@ -10,14 +10,24 @@
 }
 
 .card {
-    background-color: rgba(160, 160, 160, 0.1);
-    border: 0px;
-    padding: 5px;
+    border: 2px solid rgba(160, 160, 160, 0.1);
+    background-color: rgba(21, 185, 226, 0.01);
 }
 
 .card-header {
+    margin: 0;
     padding: 5px;
     border: 0px;
-    background-color: inherit;
+    background-color: rgba(21, 185, 226, 0.05);
     cursor: pointer;
+}
+
+.result {
+    border: 2px solid rgba(160, 160, 160, 0.1);
+    background-color: rgba(21, 185, 226, 0.05);
+    margin: 0;
+    padding: 5px;
+    text-align: center;
+    font-size: 1.5em;
+    font-weight: bold;
 }
