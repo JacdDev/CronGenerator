@@ -1,6 +1,6 @@
 (function($) {
 
-    //Create a UUIDv4
+    //Returns an UUIDv4
     function create_UUID(){
         var dt = new Date().getTime();
         var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -11,9 +11,22 @@
         return uuid;
     }
 
-    //TODO create structure of visual generator
+    function makeContentConfiguratorSeconds(contentElement,cronGenerator){
+        var checkboxEverySecond = $('<div class="form-check form-check-inline"><input class="form-check-input" type="checkbox"><label class="form-check-label">Cada Segundo</label></input></div>').appendTo(contentElement);
+        var checkboxSelection = $('<div class="form-check form-check-inline"><input class="form-check-input" type="checkbox"><label class="form-check-label">Seleccion</label></input></div>').appendTo(contentElement);
+        
+        checkboxEverySecond[0].getElementsByTagName('input')[0].onclick = function(e){
+            checkboxSelection[0].getElementsByTagName('input')[0].checked=false;
+        };
+        checkboxSelection[0].getElementsByTagName('input')[0].onclick=function(e){
+            checkboxEverySecond[0].getElementsByTagName('input')[0].checked=false;
+        };
+    }
+
+    //create structure of visual generator
     function makeConfigurator(element, cronGenerator){
 
+        //if it is not configured yet
         if(element.getElementsByClassName("tabsCronGenerator").length == 0){
             var tabs = $('<div class="tabsCronGenerator"></div>').appendTo(element);
             var tabOptions = $('<ul class="nav nav-tabs" role="tablist"></ul>').appendTo(tabs);
@@ -26,15 +39,16 @@
             $('<li class="nav-item"><a class="nav-link" data-toggle="tab" role="tab" href="#tabs-years-'+cronGenerator.uuid+'">Años</a></li>').appendTo(tabOptions);
             
             var tabsContent= $('<div class="tab-content"></div>').appendTo(tabs);
-            $('<div class="tab-pane fade show active" role="tabpanel" id="tabs-seconds-'+cronGenerator.uuid+'"><p>seconds</p></div>').appendTo(tabsContent);
-            $('<div class="tab-pane fade" role="tabpanel" id="tabs-minutes-'+cronGenerator.uuid+'"><p>minutes</p></div>').appendTo(tabsContent);
-            $('<div class="tab-pane fade" role="tabpanel" id="tabs-hours-'+cronGenerator.uuid+'"><p>hours</p></div>').appendTo(tabsContent);
-            $('<div class="tab-pane fade" role="tabpanel" id="tabs-days-'+cronGenerator.uuid+'"><p>days</p></div>').appendTo(tabsContent);
-            $('<div class="tab-pane fade" role="tabpanel" id="tabs-daysOfWeek-'+cronGenerator.uuid+'"><p>daysOfWeek</p></div>').appendTo(tabsContent);
-            $('<div class="tab-pane fade" role="tabpanel" id="tabs-months-'+cronGenerator.uuid+'"><p>months</p></div>').appendTo(tabsContent);
-            $('<div class="tab-pane fade" role="tabpanel" id="tabs-years-'+cronGenerator.uuid+'"><p>years</p></div>').appendTo(tabsContent);
+            var tabContentSeconds=$('<div class="tab-pane fade show active" role="tabpanel" id="tabs-seconds-'+cronGenerator.uuid+'"></div>').appendTo(tabsContent);
+            var tabContentMinutes=$('<div class="tab-pane fade" role="tabpanel" id="tabs-minutes-'+cronGenerator.uuid+'"></div>').appendTo(tabsContent);
+            var tabContentHours=$('<div class="tab-pane fade" role="tabpanel" id="tabs-hours-'+cronGenerator.uuid+'"></div>').appendTo(tabsContent);
+            var tabContentDays=$('<div class="tab-pane fade" role="tabpanel" id="tabs-days-'+cronGenerator.uuid+'"></div>').appendTo(tabsContent);
+            var tabContentDaysOfWeek=$('<div class="tab-pane fade" role="tabpanel" id="tabs-daysOfWeek-'+cronGenerator.uuid+'"></div>').appendTo(tabsContent);
+            var tabContentMonths=$('<div class="tab-pane fade" role="tabpanel" id="tabs-months-'+cronGenerator.uuid+'"></div>').appendTo(tabsContent);
+            var tabContentYears=$('<div class="tab-pane fade" role="tabpanel" id="tabs-years-'+cronGenerator.uuid+'"></div>').appendTo(tabsContent);
 
-            tabOptions.tab()
+            //TODO create content for all tabs
+            makeContentConfiguratorSeconds(tabContentSeconds,cronGenerator);
         }
     }
 
@@ -80,11 +94,13 @@
             years       : $.extend({}, defaultOptions.years, allOptions, options.years),
         });
 
+        //set attributes
         this.uuid=create_UUID();
         this.element = element;
         this.value=allOptions.initial;
         this.allOptions=allOptions;
 
+        //create elements
         makeConfigurator(element,this);
     };
 
