@@ -111,6 +111,76 @@
             `));
     }
 
+    function makeMonthsSection(cronGenerator){
+
+        //month select options
+        let monthSelectOptions = `
+                <option value="1">Enero</option>
+                <option value="2">Febrero</option>
+                <option value="3">Marzo</option>
+                <option value="4">Abril</option>
+                <option value="5">Mayo</option>
+                <option value="6">Junio</option>
+                <option value="7">Julio</option>
+                <option value="8">Agosto</option>
+                <option value="9">Septiembre</option>
+                <option value="10">Octubre</option>
+                <option value="1">Noviembre</option>
+                <option value="12">Diciembre</option>
+            `;
+
+        //element to select month's range
+        let repeatMonths = $('<div class="months-subsection months-repeat inline"></div>')
+            .append(makeSwitch({checked: true}))
+            .append($(`
+                <label>Cada <input type="text" maxlength="2" size="2" value="1" name="months-${cronGenerator.uuid}" /> mes/es
+                entre <select size="1" value="Enero" name="start-month-${cronGenerator.uuid}">${monthSelectOptions}</select>
+                y <select size="1" value="Diciembre" name="end-month-${cronGenerator.uuid}">${monthSelectOptions}</select>
+                <button type="button" class="add-range-months">+</button></label>
+            `));
+        repeatMonths[0].getElementsByTagName('select')[1].value = "12";
+
+        //element to select many months
+        let selectMonths = $('<div class="months-subsection select-months inline"></div>')
+            .append(makeSwitch())
+            .append($(`
+                <label>El/Los mes/es <input type="text" size="20" value="" name="months-${cronGenerator.uuid}" />
+            `));
+
+        //parent element which includes all the selectors
+        let months = $('<div></div>')
+            .append(repeatMonths)
+            .append(selectMonths);
+
+        //switch logic
+        months.find('input').on('focus', function(event){
+            let monthsRepeat = $(event.target).parents('.months-subsection');
+            let card = monthsRepeat.parent();
+            let checkbox = monthsRepeat.find('.onoffswitch-checkbox').prop("checked", true);
+            card.find('.onoffswitch-checkbox').not(checkbox).prop("checked", false);
+        });
+
+        //button logic to add month's range selectors
+        repeatMonths[0].getElementsByTagName('button')[0].onclick=function(event){
+            let repeatMonthsNewLine = $('<div class="months-subsection months-repeat inline"></div>')
+            .append($(`
+                <label>Cada <input type="text" maxlength="2" size="2" value="1" name="months-${cronGenerator.uuid}" /> mes/es
+                entre <select size="1" value="Enero" name="start-month-${cronGenerator.uuid}">${monthSelectOptions}</select>
+                y <select size="1" value="Diciembre" name="end-month-${cronGenerator.uuid}">${monthSelectOptions}</select>
+                <button type="button" class="remove-range-months">-</button></label>
+            `));
+            repeatMonthsNewLine[0].getElementsByTagName('select')[1].value = "12";
+            repeatMonthsNewLine[0].getElementsByTagName('button')[0].onclick=function(event){
+                event.currentTarget.parentNode.parentNode.removeChild(event.currentTarget.parentNode);
+            };
+    
+            selectMonths[0].parentNode.insertBefore(repeatMonthsNewLine[0], selectMonths[0]);
+        };
+
+
+        return months;
+    }
+
     //TODO create structure of visual generator
     function makeConfigurator(cronGenerator){
         cronGenerator.jqueryElement.data('id', this.uuid);
@@ -156,7 +226,7 @@
         if (cronGenerator.allOptions.months.allowConfigure){
             let card = newAccordionCard(cronGenerator, 'months');
             card.header.text('MESES')
-            card.body.text('Meses')
+            card.body.html(makeMonthsSection(cronGenerator))
         }
 
         // Years
