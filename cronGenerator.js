@@ -125,58 +125,56 @@
                 <option value="8">Agosto</option>
                 <option value="9">Septiembre</option>
                 <option value="10">Octubre</option>
-                <option value="1">Noviembre</option>
+                <option value="11">Noviembre</option>
                 <option value="12">Diciembre</option>
             `;
 
-        //element to select month's range
-        let repeatMonths = $('<div class="months-subsection months-repeat inline"></div>')
-            .append(makeSwitch({checked: true}))
+        
+    
+         //element to select month's range
+        let repeatMonthsSubsection = $('<div class="months-subsection months-repeat section-selected" data-selected="true"></div>');
+
+        let repeatMonths = $('<div class="inline multiple"></div>');
+
+        repeatMonths//.append(makeSwitch({checked: true}))
             .append($(`
                 <label>Cada <input type="text" maxlength="2" size="2" value="1" name="months-${cronGenerator.uuid}" /> mes/es
                 entre <select size="1" value="Enero" name="start-month-${cronGenerator.uuid}">${monthSelectOptions}</select>
                 y <select size="1" value="Diciembre" name="end-month-${cronGenerator.uuid}">${monthSelectOptions}</select>
-                <button type="button" class="add-range-months">+</button></label>
-            `));
-        repeatMonths[0].getElementsByTagName('select')[1].value = "12";
+                </label>
+            `))
+            .append(
+                $(`<em class="far fa-2x fa-minus-square"></em>`)
+                    .on('click', function(){})
+            );
+            
+        let addMonth = $('<div class="add-element"><em class="far fa-plus-square fa-2x"></em></div>')
+            .on('click', function() {console.log('TEST')});
+
+        repeatMonthsSubsection.append(repeatMonths).append(addMonth);
+        
+        repeatMonths.find('select:last').val("12");
 
         //element to select many months
-        let selectMonths = $('<div class="months-subsection select-months inline"></div>')
-            .append(makeSwitch())
-            .append($(`
-                <label>El/Los mes/es <input type="text" size="20" value="" name="months-${cronGenerator.uuid}" />
-            `));
+        let selectMonths = $('<div class="months-subsection select-months section-selected"></div>');
+
+        selectMonths//.append(makeSwitch())
+        .append($(`
+            <label>El/Los mes/es <input type="text" size="20" value="" name="months-${cronGenerator.uuid}" />
+        `));
 
         //parent element which includes all the selectors
         let months = $('<div></div>')
-            .append(repeatMonths)
+            .append(repeatMonthsSubsection)
             .append(selectMonths);
 
         //switch logic
-        months.find('input').on('focus', function(event){
-            let monthsRepeat = $(event.target).parents('.months-subsection');
-            let card = monthsRepeat.parent();
-            let checkbox = monthsRepeat.find('.onoffswitch-checkbox').prop("checked", true);
-            card.find('.onoffswitch-checkbox').not(checkbox).prop("checked", false);
+        months.find('input, select').on('focus', function(event){
+            let sectionSelected = $(event.target).parents('.section-selected');
+            let card = sectionSelected.parent();
+            card.find('.section-selected').attr("data-selected", "false");
+            sectionSelected.attr("data-selected", "true");
         });
-
-        //button logic to add month's range selectors
-        repeatMonths[0].getElementsByTagName('button')[0].onclick=function(event){
-            let repeatMonthsNewLine = $('<div class="months-subsection months-repeat inline"></div>')
-            .append($(`
-                <label>Cada <input type="text" maxlength="2" size="2" value="1" name="months-${cronGenerator.uuid}" /> mes/es
-                entre <select size="1" value="Enero" name="start-month-${cronGenerator.uuid}">${monthSelectOptions}</select>
-                y <select size="1" value="Diciembre" name="end-month-${cronGenerator.uuid}">${monthSelectOptions}</select>
-                <button type="button" class="remove-range-months">-</button></label>
-            `));
-            repeatMonthsNewLine[0].getElementsByTagName('select')[1].value = "12";
-            repeatMonthsNewLine[0].getElementsByTagName('button')[0].onclick=function(event){
-                event.currentTarget.parentNode.parentNode.removeChild(event.currentTarget.parentNode);
-            };
-    
-            selectMonths[0].parentNode.insertBefore(repeatMonthsNewLine[0], selectMonths[0]);
-        };
-
 
         return months;
     }
@@ -185,7 +183,7 @@
     function makeConfigurator(cronGenerator){
         cronGenerator.jqueryElement.data('id', this.uuid);
 
-        cronGenerator.accordion = $('<div class="cron-component accordion" id="accordion-'+cronGenerator.uuid+'"></div>');
+        cronGenerator.accordion = $('<div class="cron-component accordion" id="accordion-'+cronGenerator.uuid+'" style="width: ' + cronGenerator.allOptions.width + '"></div>');
         
         // Seconds
         if (cronGenerator.allOptions.seconds.allowConfigure){
@@ -267,6 +265,7 @@
         years : {
             allowConfigure  : true,
         },
+        width : '100%',
         customValues : undefined,
         onChange: undefined
 	};
@@ -276,7 +275,7 @@
 
         this.uuid=create_UUID();
         this.element = element;
-        this.jqueryElement=$(element)
+        this.jqueryElement=$(element);
         this.value=allOptions.initial;
         this.allOptions=allOptions;
 
@@ -296,15 +295,11 @@
     $.fn.cronGenerator = function(options) {
         cronGenerators = [];
 
-        this.each(function(){
+        $.each($(this), function(){
             cronGenerators.push(new CronGenerator(this, options));
         });
 
-        // TODO: retuns always the list?
-        if(cronGenerators.length==1)
-            return cronGenerators[0];
-        else
-            return cronGenerators;
+        return cronGenerators;
     };
 
 })(jQuery);

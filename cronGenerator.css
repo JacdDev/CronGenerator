@@ -117,3 +117,36 @@
     display: flex;
     flex-direction: row;
 }
+
+.multiple label {
+    flex: auto;
+    margin: 5px;
+}
+
+.multiple em {
+    margin: auto;
+    color: rgba(200, 0, 0, .7);
+}
+
+/* START - SECTION ACTIVE */
+.section-selected {
+    width: 100%;
+    padding: 7px;
+    border-radius: 5px;
+    opacity: .4;
+}
+
+.section-selected[data-selected="true"] {
+    opacity: 1;
+    background: rgba(75, 140, 220, .3);
+}
+
+.add-element {
+    border-top: 3px dashed rgba(75, 140, 220, .7);
+    padding: 5px;
+    text-align: center
+}
+
+.add-element em {
+    color: rgba(0, 160, 30, .9);
+}
