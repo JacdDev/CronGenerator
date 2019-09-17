@@ -37,20 +37,22 @@
 .cron-component input[type=button],
 .cron-component input[type=text],
 .cron-component input[type=email],
+.cron-component select,
 .cron-component textarea,
 .cron-component label
 {
 	font-size: 1.2em;
-
 }
 .cron-component label {
 	display:block;
 	margin-bottom: 10px;
 }
+.cron-component select,
 .cron-component input[type=text],
 .cron-component input[type=email] 
 {
     text-align: center;
+    text-align-last: center;
 	background: transparent;
 	border: none;
 	border-bottom: 1px dashed #83A4C5;
@@ -62,6 +64,17 @@
 .cron-component input[type=email]:focus
 {
 	border-bottom: 1px dashed #D9FFA9;
+}
+/* workaround for select's arrow in Firefox */
+@-moz-document url-prefix(){
+    .cron-component select
+    {
+        -moz-appearance:none !important;
+        background: transparent url('data:image/gif;base64,R0lGODlhBgAGAKEDAFVVVX9/f9TU1CgmNyH5BAEKAAMALAAAAAAGAAYAAAIODA4hCDKWxlhNvmCnGwUAOw==') right center no-repeat !important;
+        background-position: calc(100%) !important;
+        padding-right: 10px;
+
+    }
 }
 /* END - FORM */
 
