@@ -52,17 +52,57 @@
         return card;
     }
 
-    function makeSwitch({id, checked} = {id: null, checked: false}) {
-        return $(`
-            <div class="onoffswitch">
-                <input type="checkbox" name="${id}" class="onoffswitch-checkbox" id="${id}" disabled ${ checked ? 'checked' :'' }>
-                <label class="onoffswitch-label" for="${id}">
-                    <span class="onoffswitch-inner"></span>
-                    <span class="onoffswitch-switch"></span>
-                </label>
-            </div>
-        `);
+    //switch logic
+    function switchLogic(target){
+        let sectionSelected = $(target).parents('.section-selected');
+        let card = sectionSelected.parent();
+        card.find('.section-selected').attr("data-selected", "false");
+        sectionSelected.attr("data-selected", "true");
+    }
 
+    //create month range element
+    function createRepeatMonths(cronGenerator){
+
+        //month select options
+        let monthSelectOptions = `
+            <option value="1">Enero</option>
+            <option value="2">Febrero</option>
+            <option value="3">Marzo</option>
+            <option value="4">Abril</option>
+            <option value="5">Mayo</option>
+            <option value="6">Junio</option>
+            <option value="7">Julio</option>
+            <option value="8">Agosto</option>
+            <option value="9">Septiembre</option>
+            <option value="10">Octubre</option>
+            <option value="11">Noviembre</option>
+            <option value="12">Diciembre</option>
+        `;
+
+        let repeatMonths = $('<div class="inline multiple"></div>');
+
+        repeatMonths
+            .append($(`
+                <label>Cada <input type="text" maxlength="2" size="2" value="1" name="months-${cronGenerator.uuid}" /> mes/es
+                entre <select size="1" value="Enero" name="start-month-${cronGenerator.uuid}">${monthSelectOptions}</select>
+                y <select size="1" value="Diciembre" name="end-month-${cronGenerator.uuid}">${monthSelectOptions}</select>
+                </label>
+            `))
+            .append(
+                $(`<em class="far fa-2x fa-minus-square"></em>`)
+                    .on('click', function(){
+                        if($(this).parent().siblings().length == 1){
+                            repeatMonths.find('select:first').val("1");
+                            repeatMonths.find('select:last').val("12");
+                        }else{
+                            $(this).parent().remove();
+                        }
+                    })
+            );
+            
+        repeatMonths.find('select:last').val("12");
+
+        return repeatMonths;
     }
 
     function makeSecondsSection(cronGenerator){
@@ -73,7 +113,6 @@
 
     function makeMinutesSection(cronGenerator){
         let repeatMinutes = $('<div class="minutes-subsection minutes-repeat inline"></div>')
-            .append(makeSwitch({checked: true}))
             .append($(`
                 <label>Cada <input type="text" maxlength="2" size="2" value="1" name="minutes-${cronGenerator.uuid}" /> minuto/s
                 entre el minuto <input type="text" maxlength="2" size="2" value="0" name="start-minute-${cronGenerator.uuid}" />
@@ -81,7 +120,6 @@
             `));
 
         let selectMinutes = $('<div class="minutes-subsection select-minutes inline"></div>')
-            .append(makeSwitch())
             .append($(`
                 <label>El/Los minuto/s <input type="text" size="20" value="" name="minutes-${cronGenerator.uuid}" />
             `));
@@ -103,7 +141,6 @@
 
     function makeHoursSection(cronGenerator){
         return $('<div class="minutes-repeat"></div>')
-            .append(makeSwitch())
             .append($(`
                 <label>Cada <input type="text" maxlength="2" size="2" value="1" name="hours-${cronGenerator.uuid}" /> hora/s
                  entre la hora <input type="text" maxlength="2" size="2" value="0" name="start-hour-${cronGenerator.uuid}" />
@@ -113,55 +150,28 @@
 
     function makeMonthsSection(cronGenerator){
 
-        //month select options
-        let monthSelectOptions = `
-                <option value="1">Enero</option>
-                <option value="2">Febrero</option>
-                <option value="3">Marzo</option>
-                <option value="4">Abril</option>
-                <option value="5">Mayo</option>
-                <option value="6">Junio</option>
-                <option value="7">Julio</option>
-                <option value="8">Agosto</option>
-                <option value="9">Septiembre</option>
-                <option value="10">Octubre</option>
-                <option value="11">Noviembre</option>
-                <option value="12">Diciembre</option>
-            `;
-
-        
-    
-         //element to select month's range
+        //element to select month's range
         let repeatMonthsSubsection = $('<div class="months-subsection months-repeat section-selected" data-selected="true"></div>');
 
-        let repeatMonths = $('<div class="inline multiple"></div>');
+        let repeatMonths = createRepeatMonths(cronGenerator);
 
-        repeatMonths//.append(makeSwitch({checked: true}))
-            .append($(`
-                <label>Cada <input type="text" maxlength="2" size="2" value="1" name="months-${cronGenerator.uuid}" /> mes/es
-                entre <select size="1" value="Enero" name="start-month-${cronGenerator.uuid}">${monthSelectOptions}</select>
-                y <select size="1" value="Diciembre" name="end-month-${cronGenerator.uuid}">${monthSelectOptions}</select>
-                </label>
-            `))
-            .append(
-                $(`<em class="far fa-2x fa-minus-square"></em>`)
-                    .on('click', function(){})
+        let addMonth = $('<div class="add-element"></div>')
+            .append($(`<em class="far fa-plus-square fa-2x"></em>`)
+                .on('click', function() {
+                    let newRepeatMonths = createRepeatMonths(cronGenerator);
+                    repeatMonthsSubsection.find("div:last").before(newRepeatMonths);
+                })
             );
-            
-        let addMonth = $('<div class="add-element"><em class="far fa-plus-square fa-2x"></em></div>')
-            .on('click', function() {console.log('TEST')});
 
         repeatMonthsSubsection.append(repeatMonths).append(addMonth);
         
-        repeatMonths.find('select:last').val("12");
-
         //element to select many months
         let selectMonths = $('<div class="months-subsection select-months section-selected"></div>');
 
-        selectMonths//.append(makeSwitch())
-        .append($(`
-            <label>El/Los mes/es <input type="text" size="20" value="" name="months-${cronGenerator.uuid}" />
-        `));
+        selectMonths
+            .append($(`
+                <label>El/Los mes/es <input type="text" size="20" value="" name="months-${cronGenerator.uuid}" />
+            `));
 
         //parent element which includes all the selectors
         let months = $('<div></div>')
@@ -170,16 +180,13 @@
 
         //switch logic
         months.find('input, select').on('focus', function(event){
-            let sectionSelected = $(event.target).parents('.section-selected');
-            let card = sectionSelected.parent();
-            card.find('.section-selected').attr("data-selected", "false");
-            sectionSelected.attr("data-selected", "true");
+            switchLogic(event.target);
         });
 
         return months;
     }
 
-    //TODO create structure of visual generator
+    //create structure of visual generator
     function makeConfigurator(cronGenerator){
         cronGenerator.jqueryElement.data('id', this.uuid);
 
@@ -236,14 +243,14 @@
 
         // Result
         cronGenerator.resultJquery = $('<div class="result"></div>');
-        cronGenerator.resultJquery.text(cronGenerator.value);
+        cronGenerator.resultJquery.text(Object.values(cronGenerator.value).join(' '));
 
         cronGenerator.accordion.append(cronGenerator.resultJquery);
         cronGenerator.jqueryElement.append(cronGenerator.accordion);
     }
 
 	let defaultOptions = {
-        initial : "* * * * * *",
+        initial : "* * * * * ? *",
         seconds : {
             allowConfigure  : true,
         },
@@ -276,9 +283,16 @@
         this.uuid=create_UUID();
         this.element = element;
         this.jqueryElement=$(element);
-        this.value=allOptions.initial;
         this.allOptions=allOptions;
-
+        let splitValue = allOptions.initial.split(' ');
+        this.value={};
+        this.value.seconds = splitValue[0];
+        this.value.minutes = splitValue[1];
+        this.value.hours = splitValue[2];
+        this.value.days = splitValue[3];
+        this.value.months = splitValue[4];
+        this.value.daysOfWeek = splitValue[5];
+        this.value.years = splitValue[6];
         makeConfigurator(this);
     };
 
