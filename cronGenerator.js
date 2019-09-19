@@ -52,6 +52,10 @@
         return card;
     }
 
+    function updateValueElement(cronGenerator){
+        cronGenerator.resultJquery.text(Object.values(cronGenerator.value).join(' '));
+    }
+
     //switch logic
     function switchLogic(target){
         let sectionSelected = $(target).parents('.section-selected');
@@ -94,13 +98,55 @@
                         if($(this).parent().siblings().length == 1){
                             repeatMonths.find('select:first').val("1");
                             repeatMonths.find('select:last').val("12");
+                            repeatMonths.find('input').val("1");
+                            cronGenerator.value.months ="1-12/1";
+                            updateValueElement(cronGenerator);
                         }else{
+                            let splitValue = cronGenerator.value.months.split(',');
+                            splitValue.splice($(this).parent().index(),1);
+                            cronGenerator.value.months = splitValue.join(',');
+                            updateValueElement(cronGenerator);
                             $(this).parent().remove();
                         }
                     })
             );
             
         repeatMonths.find('select:last').val("12");
+
+        repeatMonths.find('input').change(function () {    
+            let splitValue = cronGenerator.value.months.split(',');
+            if(splitValue[$(this).parent().parent().index()].localeCompare("*") == 0)
+                splitValue[$(this).parent().parent().index()]="1-12/1";
+            let splitValueThisSelection = splitValue[$(this).parent().parent().index()].split('/');
+            splitValueThisSelection[1] = $(this).val();
+            splitValue[$(this).parent().parent().index()] = splitValueThisSelection.join('/');
+            cronGenerator.value.months = splitValue.join(',');
+            updateValueElement(cronGenerator); 
+        });  
+
+        repeatMonths.find('select:first').change(function () {    
+            let splitValue = cronGenerator.value.months.split(',');
+            if(splitValue[$(this).parent().parent().index()].localeCompare("*") == 0)
+                splitValue[$(this).parent().parent().index()]="1-12/1";
+            let splitValueThisSelection = splitValue[$(this).parent().parent().index()].split('-');
+            splitValueThisSelection[0] = $(this).val();
+            splitValue[$(this).parent().parent().index()] = splitValueThisSelection.join('-');
+            cronGenerator.value.months = splitValue.join(',');
+            updateValueElement(cronGenerator); 
+        });  
+
+        repeatMonths.find('select:last').change(function () {    
+            let splitValue = cronGenerator.value.months.split(',');
+            if(splitValue[$(this).parent().parent().index()].localeCompare("*") == 0)
+                splitValue[$(this).parent().parent().index()]="1-12/1";
+            let splitValueThisSelection = splitValue[$(this).parent().parent().index()].split('-');
+            let splitValueThisSelectionRange = splitValueThisSelection[1].split('/');
+            splitValueThisSelectionRange[0] = $(this).val();
+            splitValueThisSelection[1]=splitValueThisSelectionRange.join('/');
+            splitValue[$(this).parent().parent().index()] = splitValueThisSelection.join('-');
+            cronGenerator.value.months = splitValue.join(',');
+            updateValueElement(cronGenerator); 
+        });  
 
         return repeatMonths;
     }
@@ -160,6 +206,8 @@
                 .on('click', function() {
                     let newRepeatMonths = createRepeatMonths(cronGenerator);
                     repeatMonthsSubsection.find("div:last").before(newRepeatMonths);
+                    cronGenerator.value.months +=",1-12/1";
+                    updateValueElement(cronGenerator);
                 })
             );
 
@@ -172,6 +220,11 @@
             .append($(`
                 <label>El/Los mes/es <input type="text" size="20" value="" name="months-${cronGenerator.uuid}" />
             `));
+
+            selectMonths.find('input').change(function () {
+                cronGenerator.value.months = $(this).val();
+                updateValueElement(cronGenerator); 
+            });
 
         //parent element which includes all the selectors
         let months = $('<div></div>')
