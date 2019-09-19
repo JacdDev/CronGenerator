@@ -95,7 +95,7 @@
             .append(
                 $(`<em class="far fa-2x fa-minus-square"></em>`)
                     .on('click', function(){
-                        if($(this).parent().siblings().length == 1){
+                        if($(this).parent().siblings().length == 2){
                             repeatMonths.find('select:first').val("1");
                             repeatMonths.find('select:last').val("12");
                             repeatMonths.find('input').val("1");
@@ -111,6 +111,10 @@
                     })
             );
             
+        repeatMonths.find('input,select').on('focus', function(event){
+            switchLogic(event.target);
+        });
+
         repeatMonths.find('select:last').val("12");
 
         repeatMonths.find('input').change(function () {    
@@ -197,7 +201,15 @@
     function makeMonthsSection(cronGenerator){
 
         //element to select month's range
-        let repeatMonthsSubsection = $('<div class="months-subsection months-repeat section-selected" data-selected="true"></div>');
+        let repeatMonthsSubsection = $('<div class="months-subsection months-repeat section-selected" data-selected="false"></div>');
+
+        let checkBoxRepeatMonthsSubsection = $('<input type="checkbox">');
+        checkBoxRepeatMonthsSubsection.on("click",function(event){
+            if($(event.target).parent().attr("data-selected").localeCompare("true")==0)
+                $(event.target).parent().attr("data-selected","false");
+            else
+                $(event.target).parent().attr("data-selected","true");
+        });
 
         let repeatMonths = createRepeatMonths(cronGenerator);
 
@@ -211,30 +223,35 @@
                 })
             );
 
-        repeatMonthsSubsection.append(repeatMonths).append(addMonth);
+        repeatMonthsSubsection.append(checkBoxRepeatMonthsSubsection).append(repeatMonths).append(addMonth);
         
         //element to select many months
-        let selectMonths = $('<div class="months-subsection select-months section-selected"></div>');
+        let selectMonths = $('<div class="months-subsection select-months section-selected" data-selected="false"></div>');
+
+        let checkBoxSelectMonthsSubsection = $('<input type="checkbox">');
+        checkBoxSelectMonthsSubsection.on("click",function(event){
+            if($(event.target).parent().attr("data-selected").localeCompare("true")==0)
+                $(event.target).parent().attr("data-selected","false");
+            else
+                $(event.target).parent().attr("data-selected","true");
+        });
 
         selectMonths
-            .append($(`
-                <label>El/Los mes/es <input type="text" size="20" value="" name="months-${cronGenerator.uuid}" />
-            `));
+            .append(checkBoxSelectMonthsSubsection)
+            .append($(`<label>El/Los mes/es <input type="text" size="20" value="" name="months-${cronGenerator.uuid}" />`));
 
-            selectMonths.find('input').change(function () {
-                cronGenerator.value.months = $(this).val();
-                updateValueElement(cronGenerator); 
-            });
+        selectMonths.find('input:last').change(function () {
+            cronGenerator.value.months = $(this).val();
+            updateValueElement(cronGenerator); 
+        });
+        // selectMonths.find('input').on('focus', function(event){
+        //     switchLogic(event.target);
+        // });
 
         //parent element which includes all the selectors
         let months = $('<div></div>')
             .append(repeatMonthsSubsection)
             .append(selectMonths);
-
-        //switch logic
-        months.find('input, select').on('focus', function(event){
-            switchLogic(event.target);
-        });
 
         return months;
     }
