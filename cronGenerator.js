@@ -1,5 +1,9 @@
 (function($) {
 
+    /*************************/
+    /**   UTIL FUNCTIONS    **/
+    /*************************/
+
     //Create a UUIDv4
     function create_UUID(){
         let dt = new Date().getTime();
@@ -9,6 +13,14 @@
             return (c=='x' ? r :(r&0x3|0x8)).toString(16);
         });
         return uuid;
+    }
+
+    //switch logic
+    function switchLogic(target){
+        let sectionSelected = $(target).parents('.section-selected');
+        let card = sectionSelected.parent();
+        card.find('.section-selected').attr("data-selected", "false");
+        sectionSelected.attr("data-selected", "true");
     }
 
     function newAccordionCard(cronGenerator, id) {
@@ -56,104 +68,55 @@
         cronGenerator.resultJquery.text(Object.values(cronGenerator.value).join(' '));
     }
 
-    //switch logic
-    function switchLogic(target){
-        let sectionSelected = $(target).parents('.section-selected');
-        let card = sectionSelected.parent();
-        card.find('.section-selected').attr("data-selected", "false");
-        sectionSelected.attr("data-selected", "true");
+    function updateMonthValue(cronGenerator){
+
+        let finalMonthValue = "";
+
+        let monthCard = $(document).find(`#collapse-months-${cronGenerator.uuid}`);
+        let monthsRepeatElement = monthCard.find(".months-repeat");
+        let monthsRepeatCheckBox = monthsRepeatElement.find("input[type=checkbox]");
+        if(monthsRepeatCheckBox.prop("checked")){
+            let inlineMultipleElement = monthsRepeatElement.find(".inline.multiple");
+            for (var i = 0; i < inlineMultipleElement.length && finalMonthValue.localeCompare("*")!=0; ++i){
+                let firstSelectElement=$(inlineMultipleElement[i]).find('select:first');
+                let secondSelectElement=$(inlineMultipleElement[i]).find('select:last');
+                let inputElement=$(inlineMultipleElement[i]).find('input');
+
+                if(inputElement.val().localeCompare("1") == 0 
+                && firstSelectElement.val().localeCompare("1") == 0 
+                && secondSelectElement.val().localeCompare("12") == 0){
+                    finalMonthValue = "*";
+                }
+                else{
+                    finalMonthValue+=firstSelectElement.val()+"-"+secondSelectElement.val();
+                    if(inputElement.val().localeCompare("1") != 0)
+                        finalMonthValue += "/"+inputElement.val();
+                    finalMonthValue+=",";
+                }
+                    
+            }
+        }
+
+        let selectMonthsElement = monthCard.find(".select-months");
+        let selectMonthsCheckBox = selectMonthsElement.find("input[type=checkbox]");
+        if(selectMonthsCheckBox.prop("checked") && finalMonthValue.localeCompare("*")!=0){
+            let inputElement=selectMonthsElement.find('input:last');
+            finalMonthValue+=inputElement.val();
+        }else if(finalMonthValue.endsWith(",")){
+            finalMonthValue = finalMonthValue.substring(0,finalMonthValue.length-1);
+        }
+
+        //if no checkbox is selected
+        if(finalMonthValue.localeCompare("") == 0)
+            finalMonthValue ="*";
+
+        cronGenerator.value.months = finalMonthValue;
+        updateValueElement(cronGenerator);
     }
 
-    //create month range element
-    function createRepeatMonths(cronGenerator){
-
-        //month select options
-        let monthSelectOptions = `
-            <option value="1">Enero</option>
-            <option value="2">Febrero</option>
-            <option value="3">Marzo</option>
-            <option value="4">Abril</option>
-            <option value="5">Mayo</option>
-            <option value="6">Junio</option>
-            <option value="7">Julio</option>
-            <option value="8">Agosto</option>
-            <option value="9">Septiembre</option>
-            <option value="10">Octubre</option>
-            <option value="11">Noviembre</option>
-            <option value="12">Diciembre</option>
-        `;
-
-        let repeatMonths = $('<div class="inline multiple"></div>');
-
-        repeatMonths
-            .append($(`
-                <label>Cada <input type="text" maxlength="2" size="2" value="1" name="months-${cronGenerator.uuid}" /> mes/es
-                entre <select size="1" value="Enero" name="start-month-${cronGenerator.uuid}">${monthSelectOptions}</select>
-                y <select size="1" value="Diciembre" name="end-month-${cronGenerator.uuid}">${monthSelectOptions}</select>
-                </label>
-            `))
-            .append(
-                $(`<em class="far fa-2x fa-minus-square"></em>`)
-                    .on('click', function(){
-                        if($(this).parent().siblings().length == 2){
-                            repeatMonths.find('select:first').val("1");
-                            repeatMonths.find('select:last').val("12");
-                            repeatMonths.find('input').val("1");
-                            cronGenerator.value.months ="1-12/1";
-                            updateValueElement(cronGenerator);
-                        }else{
-                            let splitValue = cronGenerator.value.months.split(',');
-                            splitValue.splice($(this).parent().index(),1);
-                            cronGenerator.value.months = splitValue.join(',');
-                            updateValueElement(cronGenerator);
-                            $(this).parent().remove();
-                        }
-                    })
-            );
-            
-        repeatMonths.find('input,select').on('focus', function(event){
-            switchLogic(event.target);
-        });
-
-        repeatMonths.find('select:last').val("12");
-
-        repeatMonths.find('input').change(function () {    
-            let splitValue = cronGenerator.value.months.split(',');
-            if(splitValue[$(this).parent().parent().index()].localeCompare("*") == 0)
-                splitValue[$(this).parent().parent().index()]="1-12/1";
-            let splitValueThisSelection = splitValue[$(this).parent().parent().index()].split('/');
-            splitValueThisSelection[1] = $(this).val();
-            splitValue[$(this).parent().parent().index()] = splitValueThisSelection.join('/');
-            cronGenerator.value.months = splitValue.join(',');
-            updateValueElement(cronGenerator); 
-        });  
-
-        repeatMonths.find('select:first').change(function () {    
-            let splitValue = cronGenerator.value.months.split(',');
-            if(splitValue[$(this).parent().parent().index()].localeCompare("*") == 0)
-                splitValue[$(this).parent().parent().index()]="1-12/1";
-            let splitValueThisSelection = splitValue[$(this).parent().parent().index()].split('-');
-            splitValueThisSelection[0] = $(this).val();
-            splitValue[$(this).parent().parent().index()] = splitValueThisSelection.join('-');
-            cronGenerator.value.months = splitValue.join(',');
-            updateValueElement(cronGenerator); 
-        });  
-
-        repeatMonths.find('select:last').change(function () {    
-            let splitValue = cronGenerator.value.months.split(',');
-            if(splitValue[$(this).parent().parent().index()].localeCompare("*") == 0)
-                splitValue[$(this).parent().parent().index()]="1-12/1";
-            let splitValueThisSelection = splitValue[$(this).parent().parent().index()].split('-');
-            let splitValueThisSelectionRange = splitValueThisSelection[1].split('/');
-            splitValueThisSelectionRange[0] = $(this).val();
-            splitValueThisSelection[1]=splitValueThisSelectionRange.join('/');
-            splitValue[$(this).parent().parent().index()] = splitValueThisSelection.join('-');
-            cronGenerator.value.months = splitValue.join(',');
-            updateValueElement(cronGenerator); 
-        });  
-
-        return repeatMonths;
-    }
+    /**********************************/
+    /**  DOM MODIFICATION FUNCTIONS  **/
+    /**********************************/
 
     function makeSecondsSection(cronGenerator){
         return $(`
@@ -198,18 +161,119 @@
             `));
     }
 
+    //create month range element
+    function createRepeatMonths(cronGenerator){
+
+        //month select options
+        let monthSelectOptions = `
+            <option value="1">Enero</option>
+            <option value="2">Febrero</option>
+            <option value="3">Marzo</option>
+            <option value="4">Abril</option>
+            <option value="5">Mayo</option>
+            <option value="6">Junio</option>
+            <option value="7">Julio</option>
+            <option value="8">Agosto</option>
+            <option value="9">Septiembre</option>
+            <option value="10">Octubre</option>
+            <option value="11">Noviembre</option>
+            <option value="12">Diciembre</option>
+        `;
+
+        let repeatMonths = $('<div class="inline multiple"></div>');
+
+        repeatMonths
+            .append($(`
+                <label>Cada <input type="text" maxlength="2" size="2" value="1" name="months-${cronGenerator.uuid}" /> mes/es
+                entre <select size="1" value="Enero" name="start-month-${cronGenerator.uuid}">${monthSelectOptions}</select>
+                y <select size="1" value="Diciembre" name="end-month-${cronGenerator.uuid}">${monthSelectOptions}</select>
+                </label>
+            `))
+            .append(
+                $(`<em class="far fa-2x fa-minus-square"></em>`)
+                    .on('click', function(){
+                        if($(this).parent().siblings().length == 2){
+                            repeatMonths.find('select:first').val("1");
+                            repeatMonths.find('select:last').val("12");
+                            repeatMonths.find('input').val("1");
+                            // cronGenerator.value.months ="1-12/1";
+                            // updateValueElement(cronGenerator);
+                        }else{
+                            // let splitValue = cronGenerator.value.months.split(',');
+                            // splitValue.splice($(this).parent().index(),1);
+                            // cronGenerator.value.months = splitValue.join(',');
+                            // updateValueElement(cronGenerator);
+                            $(this).parent().remove();
+                        }
+                        updateMonthValue(cronGenerator);
+                    })
+            );
+            
+        // repeatMonths.find('input,select').on('focus', function(event){
+        //     switchLogic(event.target);
+        // });
+
+        repeatMonths.find('select:last').val("12");
+
+        repeatMonths.find('input').change(function () {    
+            // let splitValue = cronGenerator.value.months.split(',');
+            // if(splitValue[$(this).parent().parent().index()].localeCompare("*") == 0)
+            //     splitValue[$(this).parent().parent().index()]="1-12/1";
+            // let splitValueThisSelection = splitValue[$(this).parent().parent().index()].split('/');
+            // splitValueThisSelection[1] = $(this).val();
+            // splitValue[$(this).parent().parent().index()] = splitValueThisSelection.join('/');
+            // cronGenerator.value.months = splitValue.join(',');
+            // updateValueElement(cronGenerator); 
+            updateMonthValue(cronGenerator);
+        });  
+
+        repeatMonths.find('select:first').change(function () {    
+            // let splitValue = cronGenerator.value.months.split(',');
+            // if(splitValue[$(this).parent().parent().index()].localeCompare("*") == 0)
+            //     splitValue[$(this).parent().parent().index()]="1-12/1";
+            // let splitValueThisSelection = splitValue[$(this).parent().parent().index()].split('-');
+            // splitValueThisSelection[0] = $(this).val();
+            // splitValue[$(this).parent().parent().index()] = splitValueThisSelection.join('-');
+            // cronGenerator.value.months = splitValue.join(',');
+            // updateValueElement(cronGenerator); 
+            updateMonthValue(cronGenerator);
+        });  
+
+        repeatMonths.find('select:last').change(function () {    
+            // let splitValue = cronGenerator.value.months.split(',');
+            // if(splitValue[$(this).parent().parent().index()].localeCompare("*") == 0)
+            //     splitValue[$(this).parent().parent().index()]="1-12/1";
+            // let splitValueThisSelection = splitValue[$(this).parent().parent().index()].split('-');
+            // let splitValueThisSelectionRange = splitValueThisSelection[1].split('/');
+            // splitValueThisSelectionRange[0] = $(this).val();
+            // splitValueThisSelection[1]=splitValueThisSelectionRange.join('/');
+            // splitValue[$(this).parent().parent().index()] = splitValueThisSelection.join('-');
+            // cronGenerator.value.months = splitValue.join(',');
+            // updateValueElement(cronGenerator); 
+            updateMonthValue(cronGenerator);
+        });  
+
+        return repeatMonths;
+    }
+
     function makeMonthsSection(cronGenerator){
 
         //element to select month's range
         let repeatMonthsSubsection = $('<div class="months-subsection months-repeat section-selected" data-selected="false"></div>');
 
+        let checkboxRepeatLabel = $(`<label class="checkbox-label"></label>`);
         let checkBoxRepeatMonthsSubsection = $('<input type="checkbox">');
         checkBoxRepeatMonthsSubsection.on("click",function(event){
-            if($(event.target).parent().attr("data-selected").localeCompare("true")==0)
-                $(event.target).parent().attr("data-selected","false");
+            if($(event.target).parent().parent().attr("data-selected").localeCompare("true")==0)
+                $(event.target).parent().parent().attr("data-selected","false");
             else
-                $(event.target).parent().attr("data-selected","true");
+                $(event.target).parent().parent().attr("data-selected","true");
+            updateMonthValue(cronGenerator);
         });
+        checkboxRepeatLabel
+            .append(checkBoxRepeatMonthsSubsection)
+            .append(`<span class="checkbox-custom"></span>`)
+            .append(`<label class="checkbox-message">Seleccionar</label>`);
 
         let repeatMonths = createRepeatMonths(cronGenerator);
 
@@ -218,31 +282,43 @@
                 .on('click', function() {
                     let newRepeatMonths = createRepeatMonths(cronGenerator);
                     repeatMonthsSubsection.find("div:last").before(newRepeatMonths);
-                    cronGenerator.value.months +=",1-12/1";
-                    updateValueElement(cronGenerator);
+                    // cronGenerator.value.months +=",1-12/1";
+                    // updateValueElement(cronGenerator);
+                    updateMonthValue(cronGenerator);
                 })
             );
 
-        repeatMonthsSubsection.append(checkBoxRepeatMonthsSubsection).append(repeatMonths).append(addMonth);
+        repeatMonthsSubsection
+            .append(checkboxRepeatLabel)
+            .append(repeatMonths)
+            .append(addMonth);
         
         //element to select many months
         let selectMonths = $('<div class="months-subsection select-months section-selected" data-selected="false"></div>');
 
+        let checkboxSelectLabel = $(`<div><label class="checkbox-label"></label></div>`);
         let checkBoxSelectMonthsSubsection = $('<input type="checkbox">');
         checkBoxSelectMonthsSubsection.on("click",function(event){
-            if($(event.target).parent().attr("data-selected").localeCompare("true")==0)
-                $(event.target).parent().attr("data-selected","false");
+            if($(event.target).parent().parent().parent().attr("data-selected").localeCompare("true")==0)
+                $(event.target).parent().parent().parent().attr("data-selected","false");
             else
-                $(event.target).parent().attr("data-selected","true");
+                $(event.target).parent().parent().parent().attr("data-selected","true");
+            updateMonthValue(cronGenerator);
         });
+        checkboxSelectLabel
+            .find("label")
+            .append(checkBoxSelectMonthsSubsection)
+            .append(`<span class="checkbox-custom"></span>`)
+            .append(`<label class="checkbox-message">Seleccionar</label>`);
 
         selectMonths
-            .append(checkBoxSelectMonthsSubsection)
-            .append($(`<label>El/Los mes/es <input type="text" size="20" value="" name="months-${cronGenerator.uuid}" />`));
+            .append(checkboxSelectLabel)
+            .append($(`<label class='selection-label'>El/Los mes/es <input type="text" size="20" value="" name="months-${cronGenerator.uuid}" />`));
 
         selectMonths.find('input:last').change(function () {
-            cronGenerator.value.months = $(this).val();
-            updateValueElement(cronGenerator); 
+            //cronGenerator.value.months = $(this).val();
+            //updateValueElement(cronGenerator);
+            updateMonthValue(cronGenerator);
         });
         // selectMonths.find('input').on('focus', function(event){
         //     switchLogic(event.target);
@@ -318,6 +394,11 @@
         cronGenerator.accordion.append(cronGenerator.resultJquery);
         cronGenerator.jqueryElement.append(cronGenerator.accordion);
     }
+
+
+    /*********************************/
+    /**    CRON OBJECT FUNCTIONS    **/
+    /*********************************/
 
 	let defaultOptions = {
         initial : "* * * * * ? *",
