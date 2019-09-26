@@ -261,7 +261,7 @@
         //element to select month's range
         let repeatMonthsSubsection = $('<div class="months-subsection months-repeat section-selected" data-selected="false"></div>');
 
-        let checkboxRepeatLabel = $(`<label class="checkbox-label"></label>`);
+        let checkboxRepeatLabel = $(`<label class="checkbox-label inline"></label>`);
         let checkBoxRepeatMonthsSubsection = $('<input type="checkbox">');
         checkBoxRepeatMonthsSubsection.on("click",function(event){
             if($(event.target).parent().parent().attr("data-selected").localeCompare("true")==0)
@@ -270,10 +270,14 @@
                 $(event.target).parent().parent().attr("data-selected","true");
             updateMonthValue(cronGenerator);
         });
+
+        let heplIconRepeat=$(`<i class="help-icon fas fa-info-circle" data-html="true" title="<em>Tooltip</em> <u>with</u> <b>HTML</b>"></i>`);
+        heplIconRepeat.tooltip();
         checkboxRepeatLabel
             .append(checkBoxRepeatMonthsSubsection)
             .append(`<span class="checkbox-custom"></span>`)
-            .append(`<label class="checkbox-message">Seleccionar</label>`);
+            .append(`<em class="checkbox-message">Seleccionar</em>`)
+            .append(heplIconRepeat);
 
         let repeatMonths = createRepeatMonths(cronGenerator);
 
@@ -296,7 +300,7 @@
         //element to select many months
         let selectMonths = $('<div class="months-subsection select-months section-selected" data-selected="false"></div>');
 
-        let checkboxSelectLabel = $(`<div><label class="checkbox-label"></label></div>`);
+        let checkboxSelectLabel = $(`<div><label class="checkbox-label inline"></label></div>`);
         let checkBoxSelectMonthsSubsection = $('<input type="checkbox">');
         checkBoxSelectMonthsSubsection.on("click",function(event){
             if($(event.target).parent().parent().parent().attr("data-selected").localeCompare("true")==0)
@@ -305,11 +309,15 @@
                 $(event.target).parent().parent().parent().attr("data-selected","true");
             updateMonthValue(cronGenerator);
         });
+
+        let heplIconSelect=$(`<i class="help-icon fas fa-info-circle" data-html="true" title="<em>Tooltip</em> <u>with</u> <b>HTML</b>"></i>`);
+        heplIconSelect.tooltip();
         checkboxSelectLabel
             .find("label")
             .append(checkBoxSelectMonthsSubsection)
             .append(`<span class="checkbox-custom"></span>`)
-            .append(`<label class="checkbox-message">Seleccionar</label>`);
+            .append(`<em class="checkbox-message">Seleccionar</em>`)
+            .append(heplIconSelect);
 
         selectMonths
             .append(checkboxSelectLabel)

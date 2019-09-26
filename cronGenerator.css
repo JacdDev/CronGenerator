@@ -165,7 +165,9 @@
     color: rgba(0, 160, 30, .9);
 }
 
-
+.help-icon{
+    margin: 2px 4px;
+}
 
 /* Styling Checkbox Starts */
 .checkbox-label {
