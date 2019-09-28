@@ -97,11 +97,44 @@
             }
         }
 
+        let monthsDictionary = {
+            "enero":1,
+            "febrero":2,
+            "marzo":3,
+            "abril":4,
+            "mayo":5,
+            "junio":6,
+            "julio":7,
+            "agosto":8,
+            "septiembre":9,
+            "octubre":10,
+            "noviembre":11,
+            "diciembre":12,
+        }
+
         let selectMonthsElement = monthCard.find(".select-months");
         let selectMonthsCheckBox = selectMonthsElement.find("input[type=checkbox]");
         if(selectMonthsCheckBox.prop("checked") && finalMonthValue.localeCompare("*")!=0){
             let inputElement=selectMonthsElement.find('input:last');
-            finalMonthValue+=inputElement.val();
+            let inputElementSplit = inputElement.val().split(',');
+            let inputElementValues = [];
+            for (var i = 0; i < inputElementSplit.length; ++i){
+                let insertValue = false;
+                let currentSelectValue = Number(inputElementSplit[i]);
+                if(!Number.isInteger(currentSelectValue) || currentSelectValue < 1){
+                    if(inputElementSplit[i].toLowerCase() in monthsDictionary){
+                        currentSelectValue = monthsDictionary[inputElementSplit[i].toLowerCase()];
+                        insertValue = true;
+                    }
+                }else{
+                    insertValue=true;
+                }
+
+                if(insertValue && !inputElementValues.includes(currentSelectValue)){
+                    inputElementValues.push(currentSelectValue);
+                }
+            }
+            finalMonthValue+=inputElementValues.join(',');
         }else if(finalMonthValue.endsWith(",")){
             finalMonthValue = finalMonthValue.substring(0,finalMonthValue.length-1);
         }
