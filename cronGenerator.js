@@ -68,6 +68,76 @@
         cronGenerator.resultJquery.text(Object.values(cronGenerator.value).join(' '));
     }
 
+    function updateMinuteValue(cronGenerator){
+
+        let finalMinuteValue = "";
+
+        let minuteCard = $(document).find(`#collapse-minutes-${cronGenerator.uuid}`);
+        let minutesRepeatElement = minuteCard.find(".minutes-repeat");
+        let minutesRepeatCheckBox = minutesRepeatElement.find("input[type=checkbox]");
+        //if range checkbox is checked
+        if(minutesRepeatCheckBox.prop("checked")){
+            let inlineMultipleElement = minutesRepeatElement.find(".inline.multiple");
+            //for each range selector
+            for (var i = 0; i < inlineMultipleElement.length && finalMinuteValue.localeCompare("*")!=0; ++i){
+                let firstSelectElement=$(inlineMultipleElement[i]).find(`input[name="start-minute-${cronGenerator.uuid}"]`);
+                let secondSelectElement=$(inlineMultipleElement[i]).find(`input[name="end-minute-${cronGenerator.uuid}"]`);
+                let inputElement=$(inlineMultipleElement[i]).find(`input[name="minutes-${cronGenerator.uuid}"]`);
+
+                //if input is not a number between 1 and 12, is invalid
+                let currentInputValue = Number(inputElement.val());
+                if(!Number.isInteger(currentInputValue) || currentInputValue < 0 || currentInputValue > 59){
+                    inputElement.addClass("invalid-input");
+                }
+                else{
+                    inputElement.removeClass("invalid-input");
+                    // if result is 1-12/1, is equals than *
+                    if(inputElement.val().localeCompare("1") == 0 
+                    && firstSelectElement.val().localeCompare("0") == 0 
+                    && secondSelectElement.val().localeCompare("59") == 0){
+                        finalMinuteValue = "*";
+                    }
+                    else{
+                        finalMinuteValue+=firstSelectElement.val()+"-"+secondSelectElement.val();
+                        if(inputElement.val().localeCompare("1") != 0)
+                            finalMinuteValue += "/"+inputElement.val();
+                        finalMinuteValue+=",";
+                    }
+                }
+                    
+            }
+        }
+        
+        let selectMinutesElement = minuteCard.find(".select-minutes");
+        let selectMinutesCheckBox = selectMinutesElement.find("input[type=checkbox]");
+        //if minute selector checkbox is checked
+        if(selectMinutesCheckBox.prop("checked") && finalMinuteValue.localeCompare("*")!=0){
+            let inputElement=selectMinutesElement.find('input:last');
+            inputElement.removeClass("invalid-input");
+            let inputElementSplit = inputElement.val().split(',');
+            let inputElementValues = [];
+            let insertValue = true;
+            //for each value between commas
+            for (var i = 0; i < inputElementSplit.length && insertValue; ++i){
+                let currentSelectValue = Number(inputElementSplit[i]);
+
+                if(insertValue && !inputElementValues.includes(currentSelectValue)){
+                    inputElementValues.push(currentSelectValue);
+                }
+            }
+            finalMinuteValue+=inputElementValues.join(',');
+        }else if(finalMinuteValue.endsWith(",")){
+            finalMinuteValue = finalMinuteValue.substring(0,finalMinuteValue.length-1);
+        }
+
+        //if no checkbox is selected
+        if(finalMinuteValue.localeCompare("") == 0)
+            finalMinuteValue ="*";
+
+        cronGenerator.value.minutes = finalMinuteValue;
+        updateValueElement(cronGenerator);
+    }
+
     function updateMonthValue(cronGenerator){
 
         let finalMonthValue = "";
@@ -175,31 +245,111 @@
         `);
     }
 
-    function makeMinutesSection(cronGenerator){
-        let repeatMinutes = $('<div class="minutes-subsection minutes-repeat inline"></div>')
-            .append($(`
+    //create month range element
+    function createRepeatMinutes(cronGenerator){
+
+        let repeatMinutes = $('<div class="inline multiple"></div>');
+
+        repeatMinutes
+            .append($(` 
                 <label>Cada <input type="text" maxlength="2" size="2" value="1" name="minutes-${cronGenerator.uuid}" /> minuto/s
                 entre el minuto <input type="text" maxlength="2" size="2" value="0" name="start-minute-${cronGenerator.uuid}" />
                 y <input type="text" maxlength="2" size="2" value="59" name="end-minute-${cronGenerator.uuid}" /></label>
-            `));
+            `))
+            .append(
+                $(`<em class="far fa-2x fa-minus-square"></em>`)
+                    .on('click', function(){
+                        if($(this).parent().siblings().length == 2){
+                            repeatMinutes.find(`input[name="start-minute-${cronGenerator.uuid}"]`).val("0");
+                            repeatMinutes.find(`input[name="end-minute-${cronGenerator.uuid}"]`).val("59");
+                            repeatMinutes.find(`input[name="minutes-${cronGenerator.uuid}"]`).val("1");
+                        }else{
+                            $(this).parent().remove();
+                        }
+                        updateMinuteValue(cronGenerator);
+                    })
+            );
 
-        let selectMinutes = $('<div class="minutes-subsection select-minutes inline"></div>')
+        return repeatMinutes;
+    }
+
+    function makeMinutesSection(cronGenerator){
+        //element to select month's range
+        let repeatMinutesSubsection = $('<div class="minutes-subsection minutes-repeat section-selected" data-selected="false"></div>');
+
+        let checkboxRepeatLabel = $(`<label class="checkbox-label inline"></label>`);
+        let checkBoxRepeatMinutesSubsection = $('<input type="checkbox">');
+        checkBoxRepeatMinutesSubsection.on("click",function(event){
+            if($(event.target).parent().parent().attr("data-selected").localeCompare("true")==0)
+                $(event.target).parent().parent().attr("data-selected","false");
+            else
+                $(event.target).parent().parent().attr("data-selected","true");
+            updateMinuteValue(cronGenerator);
+        });
+
+        let htmlTooltipMessageRange = "<em>Elige un rango de minutos, puedes añadir o eliminar rangos con los botones + y -<em>"
+        let heplIconRepeat=$(`<i class="help-icon fas fa-info-circle" data-html="true" title="${htmlTooltipMessageRange}"></i>`);
+        heplIconRepeat.tooltip();
+        checkboxRepeatLabel
+            .append(checkBoxRepeatMinutesSubsection)
+            .append(`<span class="checkbox-custom"></span>`)
+            .append(`<em class="checkbox-message">Seleccionar</em>`)
+            .append(heplIconRepeat);
+
+        let repeatMinutes = createRepeatMinutes(cronGenerator);
+
+        let addMinute = $('<div class="add-element"></div>')
+            .append($(`<em class="far fa-plus-square fa-2x"></em>`)
+                .on('click', function() {
+                    let newRepeatMinutes = createRepeatMinutes(cronGenerator);
+                    repeatMinutesSubsection.find("div:last").before(newRepeatMinutes);
+                    updateMinuteValue(cronGenerator);
+                })
+            );
+
+        repeatMinutesSubsection
+            .append(checkboxRepeatLabel)
+            .append(repeatMinutes)
+            .append(addMinute);
+        
+        //element to select many minutes
+        let selectMinutes = $('<div class="minutes-subsection select-minutes section-selected" data-selected="false"></div>');
+
+        let checkboxSelectLabel = $(`<div><label class="checkbox-label inline"></label></div>`);
+        let checkBoxSelectMinutesSubsection = $('<input type="checkbox">');
+        checkBoxSelectMinutesSubsection.on("click",function(event){
+            if($(event.target).parent().parent().parent().attr("data-selected").localeCompare("true")==0)
+                $(event.target).parent().parent().parent().attr("data-selected","false");
+            else
+                $(event.target).parent().parent().parent().attr("data-selected","true");
+            updateMinuteValue(cronGenerator);
+        });
+
+        let htmlTooltipMessageSelection = "<em>Elige una serie de minutos separados por coma<em>";
+        let heplIconSelect=$(`<i class="help-icon fas fa-info-circle" data-html="true" title="${htmlTooltipMessageSelection}"></i>`);
+        heplIconSelect.tooltip();
+        checkboxSelectLabel
+            .find("label")
+            .append(checkBoxSelectMinutesSubsection)
+            .append(`<span class="checkbox-custom"></span>`)
+            .append(`<em class="checkbox-message">Seleccionar</em>`)
+            .append(heplIconSelect);
+
+        selectMinutes
+            .append(checkboxSelectLabel)
             .append($(`
                 <label>El/Los minuto/s <input type="text" size="20" value="" name="minutes-${cronGenerator.uuid}" />
             `));
 
-        
+        selectMinutes.find('input:last').change(function () {
+            updateMinuteValue(cronGenerator);
+        });
+
+        //parent element which includes all the selectors
         let minutes = $('<div></div>')
-            .append(repeatMinutes)
+            .append(repeatMinutesSubsection)
             .append(selectMinutes);
 
-        minutes.find('input').on('focus', function(event){
-            let minutesRepeat = $(event.target).parents('.minutes-subsection');
-            let card = minutesRepeat.parent();
-            let checkbox = minutesRepeat.find('.onoffswitch-checkbox').prop("checked", true);
-            card.find('.onoffswitch-checkbox').not(checkbox).prop("checked", false);
-        });
-    
         return minutes;
     }
 
@@ -242,65 +392,29 @@
             `))
             .append(
                 $(`<em class="far fa-2x fa-minus-square"></em>`)
-                    .on('click', function(){
+                    .on('click', function(){createRepeatMo
                         if($(this).parent().siblings().length == 2){
                             repeatMonths.find('select:first').val("1");
                             repeatMonths.find('select:last').val("12");
                             repeatMonths.find('input').val("1");
-                            // cronGenerator.value.months ="1-12/1";
-                            // updateValueElement(cronGenerator);
                         }else{
-                            // let splitValue = cronGenerator.value.months.split(',');
-                            // splitValue.splice($(this).parent().index(),1);
-                            // cronGenerator.value.months = splitValue.join(',');
-                            // updateValueElement(cronGenerator);
                             $(this).parent().remove();
                         }
                         updateMonthValue(cronGenerator);
                     })
             );
-            
-        // repeatMonths.find('input,select').on('focus', function(event){
-        //     switchLogic(event.target);
-        // });
 
         repeatMonths.find('select:last').val("12");
 
-        repeatMonths.find('input').change(function () {    
-            // let splitValue = cronGenerator.value.months.split(',');
-            // if(splitValue[$(this).parent().parent().index()].localeCompare("*") == 0)
-            //     splitValue[$(this).parent().parent().index()]="1-12/1";
-            // let splitValueThisSelection = splitValue[$(this).parent().parent().index()].split('/');
-            // splitValueThisSelection[1] = $(this).val();
-            // splitValue[$(this).parent().parent().index()] = splitValueThisSelection.join('/');
-            // cronGenerator.value.months = splitValue.join(',');
-            // updateValueElement(cronGenerator); 
+        repeatMonths.find('input').change(function () {
             updateMonthValue(cronGenerator);
         });  
 
-        repeatMonths.find('select:first').change(function () {    
-            // let splitValue = cronGenerator.value.months.split(',');
-            // if(splitValue[$(this).parent().parent().index()].localeCompare("*") == 0)
-            //     splitValue[$(this).parent().parent().index()]="1-12/1";
-            // let splitValueThisSelection = splitValue[$(this).parent().parent().index()].split('-');
-            // splitValueThisSelection[0] = $(this).val();
-            // splitValue[$(this).parent().parent().index()] = splitValueThisSelection.join('-');
-            // cronGenerator.value.months = splitValue.join(',');
-            // updateValueElement(cronGenerator); 
+        repeatMonths.find('select:first').change(function () {
             updateMonthValue(cronGenerator);
         });  
 
-        repeatMonths.find('select:last').change(function () {    
-            // let splitValue = cronGenerator.value.months.split(',');
-            // if(splitValue[$(this).parent().parent().index()].localeCompare("*") == 0)
-            //     splitValue[$(this).parent().parent().index()]="1-12/1";
-            // let splitValueThisSelection = splitValue[$(this).parent().parent().index()].split('-');
-            // let splitValueThisSelectionRange = splitValueThisSelection[1].split('/');
-            // splitValueThisSelectionRange[0] = $(this).val();
-            // splitValueThisSelection[1]=splitValueThisSelectionRange.join('/');
-            // splitValue[$(this).parent().parent().index()] = splitValueThisSelection.join('-');
-            // cronGenerator.value.months = splitValue.join(',');
-            // updateValueElement(cronGenerator); 
+        repeatMonths.find('select:last').change(function () {
             updateMonthValue(cronGenerator);
         });  
 
@@ -338,8 +452,6 @@
                 .on('click', function() {
                     let newRepeatMonths = createRepeatMonths(cronGenerator);
                     repeatMonthsSubsection.find("div:last").before(newRepeatMonths);
-                    // cronGenerator.value.months +=",1-12/1";
-                    // updateValueElement(cronGenerator);
                     updateMonthValue(cronGenerator);
                 })
             );
@@ -377,13 +489,8 @@
             .append($(`<label class='selection-label'>El/Los mes/es <input type="text" size="20" value="" name="months-${cronGenerator.uuid}" />`));
 
         selectMonths.find('input:last').change(function () {
-            //cronGenerator.value.months = $(this).val();
-            //updateValueElement(cronGenerator);
             updateMonthValue(cronGenerator);
         });
-        // selectMonths.find('input').on('focus', function(event){
-        //     switchLogic(event.target);
-        // });
 
         //parent element which includes all the selectors
         let months = $('<div></div>')
