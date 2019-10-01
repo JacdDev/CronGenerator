@@ -75,23 +75,34 @@
         let monthCard = $(document).find(`#collapse-months-${cronGenerator.uuid}`);
         let monthsRepeatElement = monthCard.find(".months-repeat");
         let monthsRepeatCheckBox = monthsRepeatElement.find("input[type=checkbox]");
+        //if range checkbox is checked
         if(monthsRepeatCheckBox.prop("checked")){
             let inlineMultipleElement = monthsRepeatElement.find(".inline.multiple");
+            //for each range selector
             for (var i = 0; i < inlineMultipleElement.length && finalMonthValue.localeCompare("*")!=0; ++i){
                 let firstSelectElement=$(inlineMultipleElement[i]).find('select:first');
                 let secondSelectElement=$(inlineMultipleElement[i]).find('select:last');
                 let inputElement=$(inlineMultipleElement[i]).find('input');
 
-                if(inputElement.val().localeCompare("1") == 0 
-                && firstSelectElement.val().localeCompare("1") == 0 
-                && secondSelectElement.val().localeCompare("12") == 0){
-                    finalMonthValue = "*";
+                //if input is not a number between 1 and 12, is invalid
+                let currentInputValue = Number(inputElement.val());
+                if(!Number.isInteger(currentInputValue) || currentInputValue < 1 || currentInputValue > 12){
+                    inputElement.addClass("invalid-input");
                 }
                 else{
-                    finalMonthValue+=firstSelectElement.val()+"-"+secondSelectElement.val();
-                    if(inputElement.val().localeCompare("1") != 0)
-                        finalMonthValue += "/"+inputElement.val();
-                    finalMonthValue+=",";
+                    inputElement.removeClass("invalid-input");
+                    // if result is 1-12/1, is equals than *
+                    if(inputElement.val().localeCompare("1") == 0 
+                    && firstSelectElement.val().localeCompare("1") == 0 
+                    && secondSelectElement.val().localeCompare("12") == 0){
+                        finalMonthValue = "*";
+                    }
+                    else{
+                        finalMonthValue+=firstSelectElement.val()+"-"+secondSelectElement.val();
+                        if(inputElement.val().localeCompare("1") != 0)
+                            finalMonthValue += "/"+inputElement.val();
+                        finalMonthValue+=",";
+                    }
                 }
                     
             }
@@ -114,20 +125,27 @@
 
         let selectMonthsElement = monthCard.find(".select-months");
         let selectMonthsCheckBox = selectMonthsElement.find("input[type=checkbox]");
+        //if month selector checkbox is checked
         if(selectMonthsCheckBox.prop("checked") && finalMonthValue.localeCompare("*")!=0){
             let inputElement=selectMonthsElement.find('input:last');
+            inputElement.removeClass("invalid-input");
             let inputElementSplit = inputElement.val().split(',');
             let inputElementValues = [];
-            for (var i = 0; i < inputElementSplit.length; ++i){
-                let insertValue = false;
+            let insertValue = true;
+            //for each value between commas
+            for (var i = 0; i < inputElementSplit.length && insertValue; ++i){
                 let currentSelectValue = Number(inputElementSplit[i]);
-                if(!Number.isInteger(currentSelectValue) || currentSelectValue < 1){
+                //if is not an integet between 1 and 12
+                if(!Number.isInteger(currentSelectValue) || currentSelectValue < 1 || currentSelectValue > 12){
+                    //if is a month name
                     if(inputElementSplit[i].toLowerCase() in monthsDictionary){
                         currentSelectValue = monthsDictionary[inputElementSplit[i].toLowerCase()];
-                        insertValue = true;
+                    }else{ 
+                        //else, can't parse, if empty, mark as invalid
+                        insertValue = false;
+                        if(inputElementSplit[i].localeCompare("")!=0)
+                            inputElement.addClass("invalid-input");
                     }
-                }else{
-                    insertValue=true;
                 }
 
                 if(insertValue && !inputElementValues.includes(currentSelectValue)){
@@ -304,7 +322,8 @@
             updateMonthValue(cronGenerator);
         });
 
-        let heplIconRepeat=$(`<i class="help-icon fas fa-info-circle" data-html="true" title="<em>Tooltip</em> <u>with</u> <b>HTML</b>"></i>`);
+        let htmlTooltipMessageRange = "<em>Elige un rango de meses, puedes añadir o eliminar rangos con los botones + y -<em>"
+        let heplIconRepeat=$(`<i class="help-icon fas fa-info-circle" data-html="true" title="${htmlTooltipMessageRange}"></i>`);
         heplIconRepeat.tooltip();
         checkboxRepeatLabel
             .append(checkBoxRepeatMonthsSubsection)
@@ -343,7 +362,8 @@
             updateMonthValue(cronGenerator);
         });
 
-        let heplIconSelect=$(`<i class="help-icon fas fa-info-circle" data-html="true" title="<em>Tooltip</em> <u>with</u> <b>HTML</b>"></i>`);
+        let htmlTooltipMessageSelection = "<em>Elige una serie de meses separados por coma, puedes escribir el número o su nombre<em>";
+        let heplIconSelect=$(`<i class="help-icon fas fa-info-circle" data-html="true" title="${htmlTooltipMessageSelection}"></i>`);
         heplIconSelect.tooltip();
         checkboxSelectLabel
             .find("label")
