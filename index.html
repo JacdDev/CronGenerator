@@ -20,15 +20,7 @@
 		<div id="cronComponent1" class="cronComponent" style="padding:10px;"></div>
 		<div id="cronComponent2" class="cronComponent"></div>
 		<script>
-			var singleCronComponent = $("#cronComponent1").cronGenerator({
-				initial:"0 * * * * *",
-				seconds: {
-					allowConfigure : false,
-				},
-				years: {
-					allowConfigure : false,
-				},
-			});
+			var singleCronComponent = $("#cronComponent1").cronGenerator();
 		</script>
 	</body>
 </html>
