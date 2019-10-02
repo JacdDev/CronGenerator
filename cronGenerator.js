@@ -196,7 +196,7 @@
         let selectMonthsElement = monthCard.find(".select-months");
         let selectMonthsCheckBox = selectMonthsElement.find("input[type=checkbox]");
         //if month selector checkbox is checked
-        if(selectMonthsCheckBox.prop("checked") && finalMonthValue.localeCompare("*")!=0){
+        if(selectMonthsCheckBox.prop("checked")){
             let inputElement=selectMonthsElement.find('input:last');
             inputElement.removeClass("invalid-input");
             let inputElementSplit = inputElement.val().split(',');
@@ -218,14 +218,16 @@
                     }
                 }
 
-                if(insertValue && !inputElementValues.includes(currentSelectValue)){
+                if(finalMonthValue.localeCompare("*")!=0 && insertValue && !inputElementValues.includes(currentSelectValue)){
                     inputElementValues.push(currentSelectValue);
                 }
             }
             finalMonthValue+=inputElementValues.join(',');
-        }else if(finalMonthValue.endsWith(",")){
-            finalMonthValue = finalMonthValue.substring(0,finalMonthValue.length-1);
         }
+
+        //delete last comma
+        if(finalMonthValue.endsWith(","))
+            finalMonthValue = finalMonthValue.substring(0,finalMonthValue.length-1);
 
         //if no checkbox is selected
         if(finalMonthValue.localeCompare("") == 0)
@@ -391,8 +393,9 @@
                 </label>
             `))
             .append(
-                $(`<em class="far fa-2x fa-minus-square"></em>`)
-                    .on('click', function(){createRepeatMo
+                $(`<em class="far fa-2x fa-minus-square recalc-class"></em>`)
+                    .on('click', function(event){
+                        defineMonthsEventProcess(cronGenerator,event);
                         if($(this).parent().siblings().length == 2){
                             repeatMonths.find('select:first').val("1");
                             repeatMonths.find('select:last').val("12");
@@ -400,40 +403,27 @@
                         }else{
                             $(this).parent().remove();
                         }
-                        updateMonthValue(cronGenerator);
                     })
             );
 
-        repeatMonths.find('select:last').val("12");
+        repeatMonths.find('select:last').val("12"); 
 
-        repeatMonths.find('input').change(function () {
-            updateMonthValue(cronGenerator);
-        });  
-
-        repeatMonths.find('select:first').change(function () {
-            updateMonthValue(cronGenerator);
-        });  
-
-        repeatMonths.find('select:last').change(function () {
-            updateMonthValue(cronGenerator);
-        });  
+        defineMonthEvents(cronGenerator,repeatMonths);
 
         return repeatMonths;
     }
 
     function makeMonthsSection(cronGenerator){
-
         //element to select month's range
         let repeatMonthsSubsection = $('<div class="months-subsection months-repeat section-selected" data-selected="false"></div>');
 
         let checkboxRepeatLabel = $(`<label class="checkbox-label inline"></label>`);
-        let checkBoxRepeatMonthsSubsection = $('<input type="checkbox">');
+        let checkBoxRepeatMonthsSubsection = $('<input type="checkbox" class="checkbox-select-section">');
         checkBoxRepeatMonthsSubsection.on("click",function(event){
             if($(event.target).parent().parent().attr("data-selected").localeCompare("true")==0)
                 $(event.target).parent().parent().attr("data-selected","false");
             else
                 $(event.target).parent().parent().attr("data-selected","true");
-            updateMonthValue(cronGenerator);
         });
 
         let htmlTooltipMessageRange = "<em>Elige un rango de meses, puedes añadir o eliminar rangos con los botones + y -<em>"
@@ -448,11 +438,10 @@
         let repeatMonths = createRepeatMonths(cronGenerator);
 
         let addMonth = $('<div class="add-element"></div>')
-            .append($(`<em class="far fa-plus-square fa-2x"></em>`)
+            .append($(`<em class="far fa-plus-square fa-2x recalc-class"></em>`)
                 .on('click', function() {
                     let newRepeatMonths = createRepeatMonths(cronGenerator);
                     repeatMonthsSubsection.find("div:last").before(newRepeatMonths);
-                    updateMonthValue(cronGenerator);
                 })
             );
 
@@ -465,13 +454,12 @@
         let selectMonths = $('<div class="months-subsection select-months section-selected" data-selected="false"></div>');
 
         let checkboxSelectLabel = $(`<div><label class="checkbox-label inline"></label></div>`);
-        let checkBoxSelectMonthsSubsection = $('<input type="checkbox">');
+        let checkBoxSelectMonthsSubsection = $('<input type="checkbox" class="checkbox-select-section">');
         checkBoxSelectMonthsSubsection.on("click",function(event){
             if($(event.target).parent().parent().parent().attr("data-selected").localeCompare("true")==0)
                 $(event.target).parent().parent().parent().attr("data-selected","false");
             else
                 $(event.target).parent().parent().parent().attr("data-selected","true");
-            updateMonthValue(cronGenerator);
         });
 
         let htmlTooltipMessageSelection = "<em>Elige una serie de meses separados por coma, puedes escribir el número o su nombre<em>";
@@ -488,16 +476,28 @@
             .append(checkboxSelectLabel)
             .append($(`<label class='selection-label'>El/Los mes/es <input type="text" size="20" value="" name="months-${cronGenerator.uuid}" />`));
 
-        selectMonths.find('input:last').change(function () {
-            updateMonthValue(cronGenerator);
-        });
 
         //parent element which includes all the selectors
         let months = $('<div></div>')
             .append(repeatMonthsSubsection)
             .append(selectMonths);
 
+        defineMonthEvents(cronGenerator,months);
+
         return months;
+    }
+
+    function defineMonthEvents(cronGenerator,section) {
+        section.find('input[type="checkbox"],input[type="text"],select,.recalc-class').on("change keyup click",function(event){
+            defineMonthsEventProcess(cronGenerator,event)
+        });
+    }
+
+    function defineMonthsEventProcess(cronGenerator,event) {
+        let target = $(event.target);
+        let checkbox = target.parents('.section-selected').find('.checkbox-select-section');
+        if(!target.hasClass('checkbox-select-section') && !checkbox.prop('checked')) checkbox.click();
+        updateMonthValue(cronGenerator);
     }
 
     //create structure of visual generator
