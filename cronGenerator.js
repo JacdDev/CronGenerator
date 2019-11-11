@@ -68,6 +68,101 @@
         cronGenerator.resultJquery.text(Object.values(cronGenerator.value).join(' '));
     }
 
+    function updateSecondValue(cronGenerator){
+
+        let finalSecondValue = "";
+
+        let secondCard = $(document).find(`#collapse-seconds-${cronGenerator.uuid}`);
+        let secondsRepeatElement = secondCard.find(".seconds-repeat");
+        let secondsRepeatCheckBox = secondsRepeatElement.find("input[type=checkbox]");
+        //if range checkbox is checked
+        if(secondsRepeatCheckBox.prop("checked")){
+            let inlineMultipleElement = secondsRepeatElement.find(".inline.multiple");
+            //for each range selector
+            for (var i = 0; i < inlineMultipleElement.length && finalSecondValue.localeCompare("*")!=0; ++i){
+                let firstSelectElement=$(inlineMultipleElement[i]).find(`input[name="start-second-${cronGenerator.uuid}"]`);
+                let secondSelectElement=$(inlineMultipleElement[i]).find(`input[name="end-second-${cronGenerator.uuid}"]`);
+                let inputElement=$(inlineMultipleElement[i]).find(`input[name="seconds-${cronGenerator.uuid}"]`);
+
+                //if input is not a number between 1 and 59, is invalid
+                let validInput = true;
+                let currentInputValue = Number(inputElement.val());
+                if(!Number.isInteger(currentInputValue) || currentInputValue < 1 || currentInputValue > 59){
+                    inputElement.addClass("invalid-input");
+                    validInput = false;
+                }else{
+                    inputElement.removeClass("invalid-input");
+                }
+                currentInputValue = Number(firstSelectElement.val());
+                if(firstSelectElement.val().localeCompare("") == 0 || !Number.isInteger(currentInputValue) || currentInputValue < 0 || currentInputValue > 59){
+                    firstSelectElement.addClass("invalid-input");
+                    validInput = false;
+                }else{
+                    firstSelectElement.removeClass("invalid-input");
+                }
+                currentInputValue = Number(secondSelectElement.val());
+                if(secondSelectElement.val().localeCompare("") == 0 || !Number.isInteger(currentInputValue) || currentInputValue < 0 || currentInputValue > 59){
+                    secondSelectElement.addClass("invalid-input");
+                    validInput = false;
+                }else{
+                    secondSelectElement.removeClass("invalid-input");
+                }
+                if(validInput){
+                    // if result is 0-59/1, is equals than *
+                    if(inputElement.val().localeCompare("1") == 0 
+                    && firstSelectElement.val().localeCompare("0") == 0 
+                    && secondSelectElement.val().localeCompare("59") == 0){
+                        finalSecondValue = "*";
+                    }
+                    else{
+                        finalSecondValue+=firstSelectElement.val()+"-"+secondSelectElement.val();
+                        if(inputElement.val().localeCompare("1") != 0)
+                            finalSecondValue += "/"+inputElement.val();
+                        finalSecondValue+=",";
+                    }
+                }
+                    
+            }
+        }
+        
+        let selectSecondsElement = secondCard.find(".select-seconds");
+        let selectSecondsCheckBox = selectSecondsElement.find("input[type=checkbox]");
+        //if second selector checkbox is checked
+        if(selectSecondsCheckBox.prop("checked") && finalSecondValue.localeCompare("*")!=0){
+            let inputElement=selectSecondsElement.find('input:last');
+            inputElement.removeClass("invalid-input");
+            let inputElementSplit = inputElement.val().split(',');
+            let inputElementValues = [];
+            let insertValue = true;
+            //for each value between commas
+            for (var i = 0; i < inputElementSplit.length && insertValue; ++i){
+                let currentSelectValue = Number(inputElementSplit[i]);
+                //if is not an integet between 0 and 59
+                if(inputElementSplit[i].localeCompare("")==0 || !Number.isInteger(currentSelectValue) || currentSelectValue < 0 || currentSelectValue > 59){
+                    //can't parse, mark as invalid
+                    insertValue = false;
+                    inputElement.addClass("invalid-input");
+                }
+
+                if(finalSecondValue.localeCompare("*")!=0 && insertValue && !inputElementValues.includes(currentSelectValue)){
+                    inputElementValues.push(currentSelectValue);
+                }
+            }
+            finalSecondValue+=inputElementValues.join(',');
+        }
+
+        //delete last comma
+        if(finalSecondValue.endsWith(","))
+        finalSecondValue = finalSecondValue.substring(0,finalSecondValue.length-1);
+
+        //if no checkbox is selected
+        if(finalSecondValue.localeCompare("") == 0)
+        finalSecondValue ="*";
+
+        cronGenerator.value.seconds = finalSecondValue;
+        updateValueElement(cronGenerator);
+    }
+
     function updateMinuteValue(cronGenerator){
 
         let finalMinuteValue = "";
@@ -84,14 +179,14 @@
                 let secondSelectElement=$(inlineMultipleElement[i]).find(`input[name="end-minute-${cronGenerator.uuid}"]`);
                 let inputElement=$(inlineMultipleElement[i]).find(`input[name="minutes-${cronGenerator.uuid}"]`);
 
-                //if input is not a number between 1 and 12, is invalid
+                //if input is not a number between 1 and 59, is invalid
                 let currentInputValue = Number(inputElement.val());
-                if(!Number.isInteger(currentInputValue) || currentInputValue < 0 || currentInputValue > 59){
+                if(!Number.isInteger(currentInputValue) || currentInputValue < 1 || currentInputValue > 59){
                     inputElement.addClass("invalid-input");
                 }
                 else{
                     inputElement.removeClass("invalid-input");
-                    // if result is 1-12/1, is equals than *
+                    // if result is 0-59/1, is equals than *
                     if(inputElement.val().localeCompare("1") == 0 
                     && firstSelectElement.val().localeCompare("0") == 0 
                     && secondSelectElement.val().localeCompare("59") == 0){
@@ -211,10 +306,9 @@
                     if(inputElementSplit[i].toLowerCase() in monthsDictionary){
                         currentSelectValue = monthsDictionary[inputElementSplit[i].toLowerCase()];
                     }else{ 
-                        //else, can't parse, if empty, mark as invalid
+                        //else, can't parse, mark as invalid
                         insertValue = false;
-                        if(inputElementSplit[i].localeCompare("")!=0)
-                            inputElement.addClass("invalid-input");
+                        inputElement.addClass("invalid-input");
                     }
                 }
 
@@ -241,13 +335,125 @@
     /**  DOM MODIFICATION FUNCTIONS  **/
     /**********************************/
 
-    function makeSecondsSection(cronGenerator){
-        return $(`
-            <label>Cada <input type="text" maxlength="2" size="2" value="1" name="seconds-${cronGenerator.uuid}" /> segundo/s</label>
-        `);
+    //create month range element
+    function createRepeatSeconds(cronGenerator){
+
+        let repeatSeconds = $('<div class="inline multiple"></div>');
+
+        repeatSeconds
+            .append($(` 
+                <label>Cada <input type="text" maxlength="2" size="2" value="1" name="seconds-${cronGenerator.uuid}" /> segundo/s
+                entre el segundo <input type="text" maxlength="2" size="2" value="0" name="start-second-${cronGenerator.uuid}" />
+                y <input type="text" maxlength="2" size="2" value="59" name="end-second-${cronGenerator.uuid}" /></label>
+            `))
+            .append(
+                $(`<em class="far fa-2x fa-minus-square"></em>`)
+                    .on('click', function(event){
+                        defineSecondsEventProcess(cronGenerator,event);
+                        if($(this).parent().siblings().length == 2){
+                            repeatSeconds.find(`input[name="start-second-${cronGenerator.uuid}"]`).val("0");
+                            repeatSeconds.find(`input[name="end-second-${cronGenerator.uuid}"]`).val("59");
+                            repeatSeconds.find(`input[name="seconds-${cronGenerator.uuid}"]`).val("1");
+                        }else{
+                            $(this).parent().remove();
+                        }
+                        updateSecondValue(cronGenerator);
+                    })
+            );
+
+        defineSecondsEvents(cronGenerator,repeatSeconds);
+
+        return repeatSeconds;
     }
 
-    //create month range element
+    function makeSecondsSection(cronGenerator){
+        //element to select month's range
+        let repeatSecondsSubsection = $('<div class="seconds-subsection seconds-repeat section-selected" data-selected="false"></div>');
+
+        let checkboxRepeatLabel = $(`<label class="checkbox-label inline"></label>`);
+        let checkBoxRepeatSecondsSubsection = $('<input type="checkbox" class="checkbox-select-section">');
+        checkBoxRepeatSecondsSubsection.on("click",function(event){
+            if($(event.target).parent().parent().attr("data-selected").localeCompare("true")==0)
+                $(event.target).parent().parent().attr("data-selected","false");
+            else
+                $(event.target).parent().parent().attr("data-selected","true");
+        });
+
+        let htmlTooltipMessageRange = "<em>Elige un rango de segundos, puedes añadir o eliminar rangos con los botones + y -<em>"
+        let heplIconRepeat=$(`<i class="help-icon fas fa-info-circle" data-html="true" title="${htmlTooltipMessageRange}"></i>`);
+        heplIconRepeat.tooltip();
+        checkboxRepeatLabel
+            .append(checkBoxRepeatSecondsSubsection)
+            .append(`<span class="checkbox-custom"></span>`)
+            .append(`<em class="checkbox-message">Seleccionar</em>`)
+            .append(heplIconRepeat);
+
+        let repeatSeconds = createRepeatSeconds(cronGenerator);
+
+        let addSecond = $('<div class="add-element"></div>')
+            .append($(`<em class="far fa-plus-square fa-2x recalc-class"></em>`)
+                .on('click', function() {
+                    let newRepeatSeconds = createRepeatSeconds(cronGenerator);
+                    repeatSecondsSubsection.find("div:last").before(newRepeatSeconds);
+                })
+            );
+
+        repeatSecondsSubsection
+            .append(checkboxRepeatLabel)
+            .append(repeatSeconds)
+            .append(addSecond);
+        
+        //element to select many months
+        let selectSeconds = $('<div class="seconds-subsection select-seconds section-selected" data-selected="false"></div>');
+
+        let checkboxSelectLabel = $(`<div><label class="checkbox-label inline"></label></div>`);
+        let checkBoxSelectSecondsSubsection = $('<input type="checkbox" class="checkbox-select-section">');
+        checkBoxSelectSecondsSubsection.on("click",function(event){
+            if($(event.target).parent().parent().parent().attr("data-selected").localeCompare("true")==0)
+                $(event.target).parent().parent().parent().attr("data-selected","false");
+            else
+                $(event.target).parent().parent().parent().attr("data-selected","true");
+        });
+
+        let htmlTooltipMessageSelection = "<em>Elige una serie de segundos separados por coma, puedes escribir el número o su nombre<em>";
+        let heplIconSelect=$(`<i class="help-icon fas fa-info-circle" data-html="true" title="${htmlTooltipMessageSelection}"></i>`);
+        heplIconSelect.tooltip();
+        checkboxSelectLabel
+            .find("label")
+            .append(checkBoxSelectSecondsSubsection)
+            .append(`<span class="checkbox-custom"></span>`)
+            .append(`<em class="checkbox-message">Seleccionar</em>`)
+            .append(heplIconSelect);
+
+        selectSeconds
+            .append(checkboxSelectLabel)
+            .append($(`<label class='selection-label'>El/Los segundo/s <input type="text" size="20" value="" name="seconds-${cronGenerator.uuid}" />`));
+
+
+        //parent element which includes all the selectors
+        let seconds = $('<div></div>')
+            .append(repeatSecondsSubsection)
+            .append(selectSeconds);
+
+        defineSecondsEvents(cronGenerator,seconds);
+
+        return seconds;
+    }
+
+    function defineSecondsEvents(cronGenerator,section) {
+        section.find('input[type="checkbox"],input[type="text"],select,.recalc-class').on("change keyup click",function(event){
+            defineSecondsEventProcess(cronGenerator,event)
+        });
+    }
+
+    function defineSecondsEventProcess(cronGenerator,event) {
+        let target = $(event.target);
+        let checkbox = target.parents('.section-selected').find('.checkbox-select-section');
+        if(!target.hasClass('checkbox-select-section') && !checkbox.prop('checked')) checkbox.click();
+        updateSecondValue(cronGenerator);
+    }
+
+    //create minutes range element
     function createRepeatMinutes(cronGenerator){
 
         let repeatMinutes = $('<div class="inline multiple"></div>');
