@@ -180,12 +180,29 @@
                 let inputElement=$(inlineMultipleElement[i]).find(`input[name="minutes-${cronGenerator.uuid}"]`);
 
                 //if input is not a number between 1 and 59, is invalid
+                let validInput = true;
                 let currentInputValue = Number(inputElement.val());
                 if(!Number.isInteger(currentInputValue) || currentInputValue < 1 || currentInputValue > 59){
                     inputElement.addClass("invalid-input");
-                }
-                else{
+                    validInput = false;
+                }else{
                     inputElement.removeClass("invalid-input");
+                }
+                currentInputValue = Number(firstSelectElement.val());
+                if(firstSelectElement.val().localeCompare("") == 0 || !Number.isInteger(currentInputValue) || currentInputValue < 0 || currentInputValue > 59){
+                    firstSelectElement.addClass("invalid-input");
+                    validInput = false;
+                }else{
+                    firstSelectElement.removeClass("invalid-input");
+                }
+                currentInputValue = Number(secondSelectElement.val());
+                if(secondSelectElement.val().localeCompare("") == 0 || !Number.isInteger(currentInputValue) || currentInputValue < 0 || currentInputValue > 59){
+                    secondSelectElement.addClass("invalid-input");
+                    validInput = false;
+                }else{
+                    secondSelectElement.removeClass("invalid-input");
+                }
+                if(validInput){
                     // if result is 0-59/1, is equals than *
                     if(inputElement.val().localeCompare("1") == 0 
                     && firstSelectElement.val().localeCompare("0") == 0 
@@ -215,21 +232,124 @@
             //for each value between commas
             for (var i = 0; i < inputElementSplit.length && insertValue; ++i){
                 let currentSelectValue = Number(inputElementSplit[i]);
+                //if is not an integet between 0 and 59
+                if(inputElementSplit[i].localeCompare("")==0 || !Number.isInteger(currentSelectValue) || currentSelectValue < 0 || currentSelectValue > 59){
+                    //can't parse, mark as invalid
+                    insertValue = false;
+                    inputElement.addClass("invalid-input");
+                }
 
-                if(insertValue && !inputElementValues.includes(currentSelectValue)){
+                if(finalMinuteValue.localeCompare("*")!=0 && insertValue && !inputElementValues.includes(currentSelectValue)){
                     inputElementValues.push(currentSelectValue);
                 }
             }
             finalMinuteValue+=inputElementValues.join(',');
-        }else if(finalMinuteValue.endsWith(",")){
-            finalMinuteValue = finalMinuteValue.substring(0,finalMinuteValue.length-1);
         }
+
+        //delete last comma
+        if(finalMinuteValue.endsWith(","))
+        finalMinuteValue = finalMinuteValue.substring(0,finalMinuteValue.length-1);
 
         //if no checkbox is selected
         if(finalMinuteValue.localeCompare("") == 0)
-            finalMinuteValue ="*";
+        finalMinuteValue ="*";
 
         cronGenerator.value.minutes = finalMinuteValue;
+        updateValueElement(cronGenerator);
+    }
+
+    function updateHourValue(cronGenerator){
+
+        let finalHourValue = "";
+
+        let hourCard = $(document).find(`#collapse-hours-${cronGenerator.uuid}`);
+        let hoursRepeatElement = hourCard.find(".hours-repeat");
+        let hoursRepeatCheckBox = hoursRepeatElement.find("input[type=checkbox]");
+        //if range checkbox is checked
+        if(hoursRepeatCheckBox.prop("checked")){
+            let inlineMultipleElement = hoursRepeatElement.find(".inline.multiple");
+            //for each range selector
+            for (var i = 0; i < inlineMultipleElement.length && finalHourValue.localeCompare("*")!=0; ++i){
+                let firstSelectElement=$(inlineMultipleElement[i]).find(`input[name="start-hour-${cronGenerator.uuid}"]`);
+                let secondSelectElement=$(inlineMultipleElement[i]).find(`input[name="end-hour-${cronGenerator.uuid}"]`);
+                let inputElement=$(inlineMultipleElement[i]).find(`input[name="hours-${cronGenerator.uuid}"]`);
+
+                //if input is not a number between 1 and 23, is invalid
+                let validInput = true;
+                let currentInputValue = Number(inputElement.val());
+                if(!Number.isInteger(currentInputValue) || currentInputValue < 1 || currentInputValue > 23){
+                    inputElement.addClass("invalid-input");
+                    validInput = false;
+                }else{
+                    inputElement.removeClass("invalid-input");
+                }
+                currentInputValue = Number(firstSelectElement.val());
+                if(firstSelectElement.val().localeCompare("") == 0 || !Number.isInteger(currentInputValue) || currentInputValue < 0 || currentInputValue > 23){
+                    firstSelectElement.addClass("invalid-input");
+                    validInput = false;
+                }else{
+                    firstSelectElement.removeClass("invalid-input");
+                }
+                currentInputValue = Number(secondSelectElement.val());
+                if(secondSelectElement.val().localeCompare("") == 0 || !Number.isInteger(currentInputValue) || currentInputValue < 0 || currentInputValue > 23){
+                    secondSelectElement.addClass("invalid-input");
+                    validInput = false;
+                }else{
+                    secondSelectElement.removeClass("invalid-input");
+                }
+                if(validInput){
+                    // if result is 0-23/1, is equals than *
+                    if(inputElement.val().localeCompare("1") == 0 
+                    && firstSelectElement.val().localeCompare("0") == 0 
+                    && secondSelectElement.val().localeCompare("23") == 0){
+                        finalHourValue = "*";
+                    }
+                    else{
+                        finalHourValue+=firstSelectElement.val()+"-"+secondSelectElement.val();
+                        if(inputElement.val().localeCompare("1") != 0)
+                            finalHourValue += "/"+inputElement.val();
+                        finalHourValue+=",";
+                    }
+                }
+                    
+            }
+        }
+        
+        let selectHoursElement = hourCard.find(".select-hours");
+        let selectHoursCheckBox = selectHoursElement.find("input[type=checkbox]");
+        //if hour selector checkbox is checked
+        if(selectHoursCheckBox.prop("checked") && finalHourValue.localeCompare("*")!=0){
+            let inputElement=selectHoursElement.find('input:last');
+            inputElement.removeClass("invalid-input");
+            let inputElementSplit = inputElement.val().split(',');
+            let inputElementValues = [];
+            let insertValue = true;
+            //for each value between commas
+            for (var i = 0; i < inputElementSplit.length && insertValue; ++i){
+                let currentSelectValue = Number(inputElementSplit[i]);
+                //if is not an integet between 0 and 23
+                if(inputElementSplit[i].localeCompare("")==0 || !Number.isInteger(currentSelectValue) || currentSelectValue < 0 || currentSelectValue > 23){
+                    //can't parse, mark as invalid
+                    insertValue = false;
+                    inputElement.addClass("invalid-input");
+                }
+
+                if(finalHourValue.localeCompare("*")!=0 && insertValue && !inputElementValues.includes(currentSelectValue)){
+                    inputElementValues.push(currentSelectValue);
+                }
+            }
+            finalHourValue+=inputElementValues.join(',');
+        }
+
+        //delete last comma
+        if(finalHourValue.endsWith(","))
+        finalHourValue = finalHourValue.substring(0,finalHourValue.length-1);
+
+        //if no checkbox is selected
+        if(finalHourValue.localeCompare("") == 0)
+        finalHourValue ="*";
+
+        cronGenerator.value.hours = finalHourValue;
         updateValueElement(cronGenerator);
     }
 
@@ -331,6 +451,101 @@
         updateValueElement(cronGenerator);
     }
 
+    function updateYearValue(cronGenerator){
+
+        let finalYearValue = "";
+
+        let yearCard = $(document).find(`#collapse-years-${cronGenerator.uuid}`);
+        let yearsRepeatElement = yearCard.find(".years-repeat");
+        let yearsRepeatCheckBox = yearsRepeatElement.find("input[type=checkbox]");
+        //if range checkbox is checked
+        if(yearsRepeatCheckBox.prop("checked")){
+            let inlineMultipleElement = yearsRepeatElement.find(".inline.multiple");
+            //for each range selector
+            for (var i = 0; i < inlineMultipleElement.length && finalYearValue.localeCompare("*")!=0; ++i){
+                let firstSelectElement=$(inlineMultipleElement[i]).find(`input[name="start-year-${cronGenerator.uuid}"]`);
+                let secondSelectElement=$(inlineMultipleElement[i]).find(`input[name="end-year-${cronGenerator.uuid}"]`);
+                let inputElement=$(inlineMultipleElement[i]).find(`input[name="years-${cronGenerator.uuid}"]`);
+
+                //if input is not a number between this year and 100 years ahead, is invalid
+                let validInput = true;
+                let currentInputValue = Number(inputElement.val());
+                if(!Number.isInteger(currentInputValue) || currentInputValue < 1 || currentInputValue > (new Date().getFullYear()+100)){
+                    inputElement.addClass("invalid-input");
+                    validInput = false;
+                }else{
+                    inputElement.removeClass("invalid-input");
+                }
+                currentInputValue = Number(firstSelectElement.val());
+                if(firstSelectElement.val().localeCompare("") == 0 || !Number.isInteger(currentInputValue) || currentInputValue < new Date().getFullYear() || currentInputValue > (new Date().getFullYear()+100)){
+                    firstSelectElement.addClass("invalid-input");
+                    validInput = false;
+                }else{
+                    firstSelectElement.removeClass("invalid-input");
+                }
+                currentInputValue = Number(secondSelectElement.val());
+                if(secondSelectElement.val().localeCompare("") == 0 || !Number.isInteger(currentInputValue) || currentInputValue < new Date().getFullYear() || currentInputValue > (new Date().getFullYear()+100)){
+                    secondSelectElement.addClass("invalid-input");
+                    validInput = false;
+                }else{
+                    secondSelectElement.removeClass("invalid-input");
+                }
+                if(validInput){
+                    // if result is 100 years ahead-this year/1, is equals than *
+                    if(inputElement.val().localeCompare("1") == 0 
+                    && firstSelectElement.val().localeCompare(new Date().getFullYear().toString()) == 0 
+                    && secondSelectElement.val().localeCompare((new Date().getFullYear()+100).toString()) == 0){
+                        finalYearValue = "*";
+                    }
+                    else{
+                        finalYearValue+=firstSelectElement.val()+"-"+secondSelectElement.val();
+                        if(inputElement.val().localeCompare("1") != 0)
+                            finalYearValue += "/"+inputElement.val();
+                        finalYearValue+=",";
+                    }
+                }
+                    
+            }
+        }
+        
+        let selectYearsElement = yearCard.find(".select-years");
+        let selectYearsCheckBox = selectYearsElement.find("input[type=checkbox]");
+        //if year selector checkbox is checked
+        if(selectYearsCheckBox.prop("checked") && finalYearValue.localeCompare("*")!=0){
+            let inputElement=selectYearsElement.find('input:last');
+            inputElement.removeClass("invalid-input");
+            let inputElementSplit = inputElement.val().split(',');
+            let inputElementValues = [];
+            let insertValue = true;
+            //for each value between commas
+            for (var i = 0; i < inputElementSplit.length && insertValue; ++i){
+                let currentSelectValue = Number(inputElementSplit[i]);
+                //if is not an integet between 0 and 23
+                if(inputElementSplit[i].localeCompare("")==0 || !Number.isInteger(currentSelectValue) || currentSelectValue < new Date().getFullYear() || currentSelectValue > (new Date().getFullYear()+100)){
+                    //can't parse, mark as invalid
+                    insertValue = false;
+                    inputElement.addClass("invalid-input");
+                }
+
+                if(finalYearValue.localeCompare("*")!=0 && insertValue && !inputElementValues.includes(currentSelectValue)){
+                    inputElementValues.push(currentSelectValue);
+                }
+            }
+            finalYearValue+=inputElementValues.join(',');
+        }
+
+        //delete last comma
+        if(finalYearValue.endsWith(","))
+        finalYearValue = finalYearValue.substring(0,finalYearValue.length-1);
+
+        //if no checkbox is selected
+        if(finalYearValue.localeCompare("") == 0)
+        finalYearValue ="*";
+
+        cronGenerator.value.years = finalYearValue;
+        updateValueElement(cronGenerator);
+    }
+
     /**********************************/
     /**  DOM MODIFICATION FUNCTIONS  **/
     /**********************************/
@@ -367,7 +582,7 @@
     }
 
     function makeSecondsSection(cronGenerator){
-        //element to select month's range
+        //element to select second's range
         let repeatSecondsSubsection = $('<div class="seconds-subsection seconds-repeat section-selected" data-selected="false"></div>');
 
         let checkboxRepeatLabel = $(`<label class="checkbox-label inline"></label>`);
@@ -403,7 +618,7 @@
             .append(repeatSeconds)
             .append(addSecond);
         
-        //element to select many months
+        //element to select many seconds
         let selectSeconds = $('<div class="seconds-subsection select-seconds section-selected" data-selected="false"></div>');
 
         let checkboxSelectLabel = $(`<div><label class="checkbox-label inline"></label></div>`);
@@ -415,7 +630,7 @@
                 $(event.target).parent().parent().parent().attr("data-selected","true");
         });
 
-        let htmlTooltipMessageSelection = "<em>Elige una serie de segundos separados por coma, puedes escribir el número o su nombre<em>";
+        let htmlTooltipMessageSelection = "<em>Elige una serie de segundos separados por coma, puedes escribir el número<em>";
         let heplIconSelect=$(`<i class="help-icon fas fa-info-circle" data-html="true" title="${htmlTooltipMessageSelection}"></i>`);
         heplIconSelect.tooltip();
         checkboxSelectLabel
@@ -466,7 +681,8 @@
             `))
             .append(
                 $(`<em class="far fa-2x fa-minus-square"></em>`)
-                    .on('click', function(){
+                    .on('click', function(event){
+                        defineMinutesEventProcess(cronGenerator,event);
                         if($(this).parent().siblings().length == 2){
                             repeatMinutes.find(`input[name="start-minute-${cronGenerator.uuid}"]`).val("0");
                             repeatMinutes.find(`input[name="end-minute-${cronGenerator.uuid}"]`).val("59");
@@ -478,21 +694,22 @@
                     })
             );
 
+        defineMinutesEvents(cronGenerator,repeatMinutes);
+
         return repeatMinutes;
     }
 
     function makeMinutesSection(cronGenerator){
-        //element to select month's range
+        //element to select minute's range
         let repeatMinutesSubsection = $('<div class="minutes-subsection minutes-repeat section-selected" data-selected="false"></div>');
 
         let checkboxRepeatLabel = $(`<label class="checkbox-label inline"></label>`);
-        let checkBoxRepeatMinutesSubsection = $('<input type="checkbox">');
+        let checkBoxRepeatMinutesSubsection = $('<input type="checkbox" class="checkbox-select-section">');
         checkBoxRepeatMinutesSubsection.on("click",function(event){
             if($(event.target).parent().parent().attr("data-selected").localeCompare("true")==0)
                 $(event.target).parent().parent().attr("data-selected","false");
             else
                 $(event.target).parent().parent().attr("data-selected","true");
-            updateMinuteValue(cronGenerator);
         });
 
         let htmlTooltipMessageRange = "<em>Elige un rango de minutos, puedes añadir o eliminar rangos con los botones + y -<em>"
@@ -507,11 +724,10 @@
         let repeatMinutes = createRepeatMinutes(cronGenerator);
 
         let addMinute = $('<div class="add-element"></div>')
-            .append($(`<em class="far fa-plus-square fa-2x"></em>`)
+            .append($(`<em class="far fa-plus-square fa-2x recalc-class"></em>`)
                 .on('click', function() {
                     let newRepeatMinutes = createRepeatMinutes(cronGenerator);
                     repeatMinutesSubsection.find("div:last").before(newRepeatMinutes);
-                    updateMinuteValue(cronGenerator);
                 })
             );
 
@@ -524,16 +740,15 @@
         let selectMinutes = $('<div class="minutes-subsection select-minutes section-selected" data-selected="false"></div>');
 
         let checkboxSelectLabel = $(`<div><label class="checkbox-label inline"></label></div>`);
-        let checkBoxSelectMinutesSubsection = $('<input type="checkbox">');
+        let checkBoxSelectMinutesSubsection = $('<input type="checkbox" class="checkbox-select-section">');
         checkBoxSelectMinutesSubsection.on("click",function(event){
             if($(event.target).parent().parent().parent().attr("data-selected").localeCompare("true")==0)
                 $(event.target).parent().parent().parent().attr("data-selected","false");
             else
                 $(event.target).parent().parent().parent().attr("data-selected","true");
-            updateMinuteValue(cronGenerator);
         });
 
-        let htmlTooltipMessageSelection = "<em>Elige una serie de minutos separados por coma<em>";
+        let htmlTooltipMessageSelection = "<em>Elige una serie de minutos separados por coma, puedes escribir el número<em>";
         let heplIconSelect=$(`<i class="help-icon fas fa-info-circle" data-html="true" title="${htmlTooltipMessageSelection}"></i>`);
         heplIconSelect.tooltip();
         checkboxSelectLabel
@@ -545,29 +760,148 @@
 
         selectMinutes
             .append(checkboxSelectLabel)
-            .append($(`
-                <label>El/Los minuto/s <input type="text" size="20" value="" name="minutes-${cronGenerator.uuid}" />
-            `));
+            .append($(`<label class='selection-label'>El/Los segundo/s <input type="text" size="20" value="" name="minutes-${cronGenerator.uuid}" />`));
 
-        selectMinutes.find('input:last').change(function () {
-            updateMinuteValue(cronGenerator);
-        });
 
         //parent element which includes all the selectors
         let minutes = $('<div></div>')
             .append(repeatMinutesSubsection)
             .append(selectMinutes);
 
+        defineMinutesEvents(cronGenerator,minutes);
+
         return minutes;
     }
 
-    function makeHoursSection(cronGenerator){
-        return $('<div class="minutes-repeat"></div>')
-            .append($(`
+    function defineMinutesEvents(cronGenerator,section) {
+        section.find('input[type="checkbox"],input[type="text"],select,.recalc-class').on("change keyup click",function(event){
+            defineMinutesEventProcess(cronGenerator,event)
+        });
+    }
+
+    function defineMinutesEventProcess(cronGenerator,event) {
+        let target = $(event.target);
+        let checkbox = target.parents('.section-selected').find('.checkbox-select-section');
+        if(!target.hasClass('checkbox-select-section') && !checkbox.prop('checked')) checkbox.click();
+        updateMinuteValue(cronGenerator);
+    }
+
+    //create hours range element
+    function createRepeatHours(cronGenerator){
+
+        let repeatHours = $('<div class="inline multiple"></div>');
+
+        repeatHours
+            .append($(` 
                 <label>Cada <input type="text" maxlength="2" size="2" value="1" name="hours-${cronGenerator.uuid}" /> hora/s
-                 entre la hora <input type="text" maxlength="2" size="2" value="0" name="start-hour-${cronGenerator.uuid}" />
-                 y <input type="text" maxlength="2" size="2" value="23" name="end-hour-${cronGenerator.uuid}" /></label>
-            `));
+                entre la hora <input type="text" maxlength="2" size="2" value="0" name="start-hour-${cronGenerator.uuid}" />
+                y <input type="text" maxlength="2" size="2" value="23" name="end-hour-${cronGenerator.uuid}" /></label>
+            `))
+            .append(
+                $(`<em class="far fa-2x fa-minus-square"></em>`)
+                    .on('click', function(event){
+                        defineHoursEventProcess(cronGenerator,event);
+                        if($(this).parent().siblings().length == 2){
+                            repeatHours.find(`input[name="start-hour-${cronGenerator.uuid}"]`).val("0");
+                            repeatHours.find(`input[name="end-hour-${cronGenerator.uuid}"]`).val("23");
+                            repeatHours.find(`input[name="hours-${cronGenerator.uuid}"]`).val("1");
+                        }else{
+                            $(this).parent().remove();
+                        }
+                        updateHourValue(cronGenerator);
+                    })
+            );
+
+        defineHoursEvents(cronGenerator,repeatHours);
+
+        return repeatHours;
+    }
+
+    function makeHoursSection(cronGenerator){
+        //element to select hour's range
+        let repeatHoursSubsection = $('<div class="hours-subsection hours-repeat section-selected" data-selected="false"></div>');
+
+        let checkboxRepeatLabel = $(`<label class="checkbox-label inline"></label>`);
+        let checkBoxRepeatHoursSubsection = $('<input type="checkbox" class="checkbox-select-section">');
+        checkBoxRepeatHoursSubsection.on("click",function(event){
+            if($(event.target).parent().parent().attr("data-selected").localeCompare("true")==0)
+                $(event.target).parent().parent().attr("data-selected","false");
+            else
+                $(event.target).parent().parent().attr("data-selected","true");
+        });
+
+        let htmlTooltipMessageRange = "<em>Elige un rango de horas, puedes añadir o eliminar rangos con los botones + y -<em>"
+        let heplIconRepeat=$(`<i class="help-icon fas fa-info-circle" data-html="true" title="${htmlTooltipMessageRange}"></i>`);
+        heplIconRepeat.tooltip();
+        checkboxRepeatLabel
+            .append(checkBoxRepeatHoursSubsection)
+            .append(`<span class="checkbox-custom"></span>`)
+            .append(`<em class="checkbox-message">Seleccionar</em>`)
+            .append(heplIconRepeat);
+
+        let repeatHours = createRepeatHours(cronGenerator);
+
+        let addHour = $('<div class="add-element"></div>')
+            .append($(`<em class="far fa-plus-square fa-2x recalc-class"></em>`)
+                .on('click', function() {
+                    let newRepeatHours = createRepeatHours(cronGenerator);
+                    repeatHoursSubsection.find("div:last").before(newRepeatHours);
+                })
+            );
+
+        repeatHoursSubsection
+            .append(checkboxRepeatLabel)
+            .append(repeatHours)
+            .append(addHour);
+        
+        //element to select many hours
+        let selectHours = $('<div class="hours-subsection select-hours section-selected" data-selected="false"></div>');
+
+        let checkboxSelectLabel = $(`<div><label class="checkbox-label inline"></label></div>`);
+        let checkBoxSelectHoursSubsection = $('<input type="checkbox" class="checkbox-select-section">');
+        checkBoxSelectHoursSubsection.on("click",function(event){
+            if($(event.target).parent().parent().parent().attr("data-selected").localeCompare("true")==0)
+                $(event.target).parent().parent().parent().attr("data-selected","false");
+            else
+                $(event.target).parent().parent().parent().attr("data-selected","true");
+        });
+
+        let htmlTooltipMessageSelection = "<em>Elige una serie de horas separados por coma, puedes escribir el número<em>";
+        let heplIconSelect=$(`<i class="help-icon fas fa-info-circle" data-html="true" title="${htmlTooltipMessageSelection}"></i>`);
+        heplIconSelect.tooltip();
+        checkboxSelectLabel
+            .find("label")
+            .append(checkBoxSelectHoursSubsection)
+            .append(`<span class="checkbox-custom"></span>`)
+            .append(`<em class="checkbox-message">Seleccionar</em>`)
+            .append(heplIconSelect);
+
+        selectHours
+            .append(checkboxSelectLabel)
+            .append($(`<label class='selection-label'>El/Los segundo/s <input type="text" size="20" value="" name="hours-${cronGenerator.uuid}" />`));
+
+
+        //parent element which includes all the selectors
+        let hours = $('<div></div>')
+            .append(repeatHoursSubsection)
+            .append(selectHours);
+
+        defineHoursEvents(cronGenerator,hours);
+
+        return hours;
+    }
+
+    function defineHoursEvents(cronGenerator,section) {
+        section.find('input[type="checkbox"],input[type="text"],select,.recalc-class').on("change keyup click",function(event){
+            defineHoursEventProcess(cronGenerator,event)
+        });
+    }
+
+    function defineHoursEventProcess(cronGenerator,event) {
+        let target = $(event.target);
+        let checkbox = target.parents('.section-selected').find('.checkbox-select-section');
+        if(!target.hasClass('checkbox-select-section') && !checkbox.prop('checked')) checkbox.click();
+        updateHourValue(cronGenerator);
     }
 
     //create month range element
@@ -706,6 +1040,124 @@
         updateMonthValue(cronGenerator);
     }
 
+    //create years range element
+    function createRepeatYears(cronGenerator){
+
+        let repeatYears = $('<div class="inline multiple"></div>');
+
+        repeatYears
+            .append($(` 
+                <label>Cada <input type="text" maxlength="2" size="2" value="1" name="years-${cronGenerator.uuid}" /> año/s
+                entre el año <input type="text" maxlength="4" size="2" value="${new Date().getFullYear()}" name="start-year-${cronGenerator.uuid}" />
+                y <input type="text" maxlength="4" size="2" value="${new Date().getFullYear()+100}" name="end-year-${cronGenerator.uuid}" /></label>
+            `))
+            .append(
+                $(`<em class="far fa-2x fa-minus-square"></em>`)
+                    .on('click', function(event){
+                        defineYearsEventProcess(cronGenerator,event);
+                        if($(this).parent().siblings().length == 2){
+                            repeatYears.find(`input[name="start-year-${cronGenerator.uuid}"]`).val(new Date().getFullYear().toString());
+                            repeatYears.find(`input[name="end-year-${cronGenerator.uuid}"]`).val((new Date().getFullYear()+100).toString());
+                            repeatYears.find(`input[name="years-${cronGenerator.uuid}"]`).val("1");
+                        }else{
+                            $(this).parent().remove();
+                        }
+                        updateYearValue(cronGenerator);
+                    })
+            );
+
+        defineYearsEvents(cronGenerator,repeatYears);
+
+        return repeatYears;
+    }
+
+    function makeYearsSection(cronGenerator){
+        //element to select year's range
+        let repeatYearsSubsection = $('<div class="years-subsection years-repeat section-selected" data-selected="false"></div>');
+
+        let checkboxRepeatLabel = $(`<label class="checkbox-label inline"></label>`);
+        let checkBoxRepeatYearsSubsection = $('<input type="checkbox" class="checkbox-select-section">');
+        checkBoxRepeatYearsSubsection.on("click",function(event){
+            if($(event.target).parent().parent().attr("data-selected").localeCompare("true")==0)
+                $(event.target).parent().parent().attr("data-selected","false");
+            else
+                $(event.target).parent().parent().attr("data-selected","true");
+        });
+
+        let htmlTooltipMessageRange = "<em>Elige un rango de años, puedes añadir o eliminar rangos con los botones + y -<em>"
+        let heplIconRepeat=$(`<i class="help-icon fas fa-info-circle" data-html="true" title="${htmlTooltipMessageRange}"></i>`);
+        heplIconRepeat.tooltip();
+        checkboxRepeatLabel
+            .append(checkBoxRepeatYearsSubsection)
+            .append(`<span class="checkbox-custom"></span>`)
+            .append(`<em class="checkbox-message">Seleccionar</em>`)
+            .append(heplIconRepeat);
+
+        let repeatYears = createRepeatYears(cronGenerator);
+
+        let addYear = $('<div class="add-element"></div>')
+            .append($(`<em class="far fa-plus-square fa-2x recalc-class"></em>`)
+                .on('click', function() {
+                    let newRepeatYears = createRepeatYears(cronGenerator);
+                    repeatYearsSubsection.find("div:last").before(newRepeatYears);
+                })
+            );
+
+        repeatYearsSubsection
+            .append(checkboxRepeatLabel)
+            .append(repeatYears)
+            .append(addYear);
+        
+        //element to select many years
+        let selectYears = $('<div class="years-subsection select-years section-selected" data-selected="false"></div>');
+
+        let checkboxSelectLabel = $(`<div><label class="checkbox-label inline"></label></div>`);
+        let checkBoxSelectYearsSubsection = $('<input type="checkbox" class="checkbox-select-section">');
+        checkBoxSelectYearsSubsection.on("click",function(event){
+            if($(event.target).parent().parent().parent().attr("data-selected").localeCompare("true")==0)
+                $(event.target).parent().parent().parent().attr("data-selected","false");
+            else
+                $(event.target).parent().parent().parent().attr("data-selected","true");
+        });
+
+        let htmlTooltipMessageSelection = "<em>Elige una serie de años separados por coma, puedes escribir el número<em>";
+        let heplIconSelect=$(`<i class="help-icon fas fa-info-circle" data-html="true" title="${htmlTooltipMessageSelection}"></i>`);
+        heplIconSelect.tooltip();
+        checkboxSelectLabel
+            .find("label")
+            .append(checkBoxSelectYearsSubsection)
+            .append(`<span class="checkbox-custom"></span>`)
+            .append(`<em class="checkbox-message">Seleccionar</em>`)
+            .append(heplIconSelect);
+
+        selectYears
+            .append(checkboxSelectLabel)
+            .append($(`<label class='selection-label'>El/Los segundo/s <input type="text" size="20" value="" name="years-${cronGenerator.uuid}" />`));
+
+
+        //parent element which includes all the selectors
+        let years = $('<div></div>')
+            .append(repeatYearsSubsection)
+            .append(selectYears);
+
+        defineYearsEvents(cronGenerator,years);
+
+        return years;
+    }
+
+    function defineYearsEvents(cronGenerator,section) {
+        section.find('input[type="checkbox"],input[type="text"],select,.recalc-class').on("change keyup click",function(event){
+            defineYearsEventProcess(cronGenerator,event)
+        });
+    }
+
+    function defineYearsEventProcess(cronGenerator,event) {
+        let target = $(event.target);
+        let checkbox = target.parents('.section-selected').find('.checkbox-select-section');
+        if(!target.hasClass('checkbox-select-section') && !checkbox.prop('checked')) checkbox.click();
+        updateYearValue(cronGenerator);
+    }
+
     //create structure of visual generator
     function makeConfigurator(cronGenerator){
         cronGenerator.jqueryElement.data('id', this.uuid);
@@ -758,7 +1210,7 @@
         if (cronGenerator.allOptions.years.allowConfigure){
             let card = newAccordionCard(cronGenerator, 'years');
             card.header.text('AÑOS')
-            card.body.text('Años')
+            card.body.html(makeYearsSection(cronGenerator))
         }
 
         // Result
