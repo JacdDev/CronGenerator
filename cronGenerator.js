@@ -353,6 +353,209 @@
         updateValueElement(cronGenerator);
     }
 
+    function updateDayValue(cronGenerator){
+
+        let finalDayValue = "";
+
+        let dayCard = $(document).find(`#collapse-days-${cronGenerator.uuid}`);
+        let daysRepeatElement = dayCard.find(".days-repeat");
+        let daysRepeatCheckBox = daysRepeatElement.find("input[type=checkbox]");
+        //if range checkbox is checked
+        if(daysRepeatCheckBox.prop("checked")){
+            let inlineMultipleElement = daysRepeatElement.find(".inline.multiple");
+            //for each range selector
+            for (var i = 0; i < inlineMultipleElement.length && finalDayValue.localeCompare("*")!=0; ++i){
+                let firstSelectElement=$(inlineMultipleElement[i]).find(`input[name="start-day-${cronGenerator.uuid}"]`);
+                let secondSelectElement=$(inlineMultipleElement[i]).find(`input[name="end-day-${cronGenerator.uuid}"]`);
+                let inputElement=$(inlineMultipleElement[i]).find(`input[name="days-${cronGenerator.uuid}"]`);
+
+                //if input is not a number between 1 and 31, is invalid
+                let validInput = true;
+                let currentInputValue = Number(inputElement.val());
+                if(!Number.isInteger(currentInputValue) || currentInputValue < 1 || currentInputValue > 31){
+                    inputElement.addClass("invalid-input");
+                    validInput = false;
+                }else{
+                    inputElement.removeClass("invalid-input");
+                }
+                currentInputValue = Number(firstSelectElement.val());
+                if(firstSelectElement.val().localeCompare("") == 0 || !Number.isInteger(currentInputValue) || currentInputValue < 1 || currentInputValue > 31){
+                    firstSelectElement.addClass("invalid-input");
+                    validInput = false;
+                }else{
+                    firstSelectElement.removeClass("invalid-input");
+                }
+                currentInputValue = Number(secondSelectElement.val());
+                if(secondSelectElement.val().localeCompare("") == 0 || !Number.isInteger(currentInputValue) || currentInputValue < 1 || currentInputValue > 31){
+                    secondSelectElement.addClass("invalid-input");
+                    validInput = false;
+                }else{
+                    secondSelectElement.removeClass("invalid-input");
+                }
+                if(validInput){
+                    // if result is 0-23/1, is equals than *
+                    if(inputElement.val().localeCompare("1") == 0 
+                    && firstSelectElement.val().localeCompare("1") == 0 
+                    && secondSelectElement.val().localeCompare("31") == 0){
+                        finalDayValue = "*";
+                    }
+                    else{
+                        finalDayValue+=firstSelectElement.val()+"-"+secondSelectElement.val();
+                        if(inputElement.val().localeCompare("1") != 0)
+                            finalDayValue += "/"+inputElement.val();
+                        finalDayValue+=",";
+                    }
+                }
+                    
+            }
+        }
+        
+        let selectDaysElement = dayCard.find(".select-days");
+        let selectDaysCheckBox = selectDaysElement.find("input[type=checkbox]");
+        //if day selector checkbox is checked
+        if(selectDaysCheckBox.prop("checked") && finalDayValue.localeCompare("*")!=0){
+            let inputElement=selectDaysElement.find('input:last');
+            inputElement.removeClass("invalid-input");
+            let inputElementSplit = inputElement.val().split(',');
+            let inputElementValues = [];
+            let insertValue = true;
+            //for each value between commas
+            for (var i = 0; i < inputElementSplit.length && insertValue; ++i){
+                let currentSelectValue = Number(inputElementSplit[i]);
+                //if is not an integet between 1 and 31
+                if(inputElementSplit[i].localeCompare("")==0 || !Number.isInteger(currentSelectValue) || currentSelectValue < 1 || currentSelectValue > 31){
+                    //can't parse, mark as invalid
+                    insertValue = false;
+                    inputElement.addClass("invalid-input");
+                }
+
+                if(finalDayValue.localeCompare("*")!=0 && insertValue && !inputElementValues.includes(currentSelectValue)){
+                    inputElementValues.push(currentSelectValue);
+                }
+            }
+            finalDayValue+=inputElementValues.join(',');
+        }
+
+        //delete last comma
+        if(finalDayValue.endsWith(","))
+        finalDayValue = finalDayValue.substring(0,finalDayValue.length-1);
+
+        //if no checkbox is selected
+        if(finalDayValue.localeCompare("") == 0)
+        finalDayValue ="*";
+
+        cronGenerator.value.days = finalDayValue;
+
+        //reset day of week
+        cronGenerator.value.daysOfWeek = "?";
+        var daysOfWeekCheckbox = $(document).find(`#collapse-dayOfWeeks-${cronGenerator.uuid} input[type=checkbox]`)
+        daysOfWeekCheckbox.prop("checked",false);
+        var daysOfWeekSection =$(".dayOfWeeks-subsection")
+        daysOfWeekSection.attr("data-selected",false);
+
+        updateValueElement(cronGenerator);
+    }
+
+    function updateDayOfWeekValue(cronGenerator){
+
+        let finalDayOfWeekValue = "";
+
+        let dayOfWeekCard = $(document).find(`#collapse-dayOfWeeks-${cronGenerator.uuid}`);
+        let dayOfWeeksRepeatElement = dayOfWeekCard.find(".dayOfWeeks-repeat");
+        let dayOfWeeksRepeatCheckBox = dayOfWeeksRepeatElement.find("input[type=checkbox]");
+        //if range checkbox is checked
+        if(dayOfWeeksRepeatCheckBox.prop("checked")){
+            let inlineMultipleElement = dayOfWeeksRepeatElement.find(".inline.multiple");
+            //for each range selector
+            for (var i = 0; i < inlineMultipleElement.length && finalDayOfWeekValue.localeCompare("*")!=0; ++i){
+                let firstSelectElement=$(inlineMultipleElement[i]).find('select:first');
+                let secondSelectElement=$(inlineMultipleElement[i]).find('select:last');
+                let inputElement=$(inlineMultipleElement[i]).find('input');
+
+                //if input is not a number between 1 and 12, is invalid
+                let currentInputValue = Number(inputElement.val());
+                if(!Number.isInteger(currentInputValue) || currentInputValue < 1 || currentInputValue > 7){
+                    inputElement.addClass("invalid-input");
+                }
+                else{
+                    inputElement.removeClass("invalid-input");
+                    // if result is 1-7/1, is equals than *
+                    if(inputElement.val().localeCompare("1") == 0 
+                    && firstSelectElement.val().localeCompare("1") == 0 
+                    && secondSelectElement.val().localeCompare("7") == 0){
+                        finalDayOfWeekValue = "*";
+                    }
+                    else{
+                        finalDayOfWeekValue+=firstSelectElement.val()+"-"+secondSelectElement.val();
+                        if(inputElement.val().localeCompare("1") != 0)
+                            finalDayOfWeekValue += "/"+inputElement.val();
+                        finalDayOfWeekValue+=",";
+                    }
+                }
+                    
+            }
+        }
+
+        let dayOfWeeksDictionary = {
+            "domingo":1,
+            "lunes":2,
+            "martes":3,
+            "miércoles":4,
+            "jueves":5,
+            "viernes":6,
+            "sábado":7,
+        }
+
+        let selectDayOfWeeksElement = dayOfWeekCard.find(".select-dayOfWeeks");
+        let selectDayOfWeeksCheckBox = selectDayOfWeeksElement.find("input[type=checkbox]");
+        //if dayOfWeek selector checkbox is checked
+        if(selectDayOfWeeksCheckBox.prop("checked")){
+            let inputElement=selectDayOfWeeksElement.find('input:last');
+            inputElement.removeClass("invalid-input");
+            let inputElementSplit = inputElement.val().split(',');
+            let inputElementValues = [];
+            let insertValue = true;
+            //for each value between commas
+            for (var i = 0; i < inputElementSplit.length && insertValue; ++i){
+                let currentSelectValue = Number(inputElementSplit[i]);
+                //if is not an integet between 1 and 7
+                if(!Number.isInteger(currentSelectValue) || currentSelectValue < 1 || currentSelectValue > 7){
+                    //if is a dayOfWeek name
+                    if(inputElementSplit[i].toLowerCase() in dayOfWeeksDictionary){
+                        currentSelectValue = dayOfWeeksDictionary[inputElementSplit[i].toLowerCase()];
+                    }else{ 
+                        //else, can't parse, mark as invalid
+                        insertValue = false;
+                        inputElement.addClass("invalid-input");
+                    }
+                }
+
+                if(finalDayOfWeekValue.localeCompare("*")!=0 && insertValue && !inputElementValues.includes(currentSelectValue)){
+                    inputElementValues.push(currentSelectValue);
+                }
+            }
+            finalDayOfWeekValue+=inputElementValues.join(',');
+        }
+
+        //delete last comma
+        if(finalDayOfWeekValue.endsWith(","))
+            finalDayOfWeekValue = finalDayOfWeekValue.substring(0,finalDayOfWeekValue.length-1);
+
+        //if no checkbox is selected
+        if(finalDayOfWeekValue.localeCompare("") == 0)
+            finalDayOfWeekValue ="*";
+
+        cronGenerator.value.daysOfWeek = finalDayOfWeekValue;
+         //reset day 
+         cronGenerator.value.days = "?";
+         var daysCheckbox = $(document).find(`#collapse-days-${cronGenerator.uuid} input[type=checkbox]`)
+         daysCheckbox.prop("checked",false);
+         var daysSection =$(".days-subsection")
+         daysSection.attr("data-selected",false);
+
+        updateValueElement(cronGenerator);
+    }
+    
     function updateMonthValue(cronGenerator){
 
         let finalMonthValue = "";
@@ -550,7 +753,7 @@
     /**  DOM MODIFICATION FUNCTIONS  **/
     /**********************************/
 
-    //create month range element
+    //seconds section
     function createRepeatSeconds(cronGenerator){
 
         let repeatSeconds = $('<div class="inline multiple"></div>');
@@ -668,7 +871,7 @@
         updateSecondValue(cronGenerator);
     }
 
-    //create minutes range element
+    //minutes section
     function createRepeatMinutes(cronGenerator){
 
         let repeatMinutes = $('<div class="inline multiple"></div>');
@@ -760,7 +963,7 @@
 
         selectMinutes
             .append(checkboxSelectLabel)
-            .append($(`<label class='selection-label'>El/Los segundo/s <input type="text" size="20" value="" name="minutes-${cronGenerator.uuid}" />`));
+            .append($(`<label class='selection-label'>El/Los minuto/s <input type="text" size="20" value="" name="minutes-${cronGenerator.uuid}" />`));
 
 
         //parent element which includes all the selectors
@@ -786,7 +989,7 @@
         updateMinuteValue(cronGenerator);
     }
 
-    //create hours range element
+    //hours section
     function createRepeatHours(cronGenerator){
 
         let repeatHours = $('<div class="inline multiple"></div>');
@@ -878,7 +1081,7 @@
 
         selectHours
             .append(checkboxSelectLabel)
-            .append($(`<label class='selection-label'>El/Los segundo/s <input type="text" size="20" value="" name="hours-${cronGenerator.uuid}" />`));
+            .append($(`<label class='selection-label'>La/s hora/s <input type="text" size="20" value="" name="hours-${cronGenerator.uuid}" />`));
 
 
         //parent element which includes all the selectors
@@ -904,7 +1107,256 @@
         updateHourValue(cronGenerator);
     }
 
-    //create month range element
+    //days section
+    function createRepeatDays(cronGenerator){
+
+        let repeatDays = $('<div class="inline multiple"></div>');
+
+        repeatDays
+            .append($(` 
+                <label>Cada <input type="text" maxlength="2" size="2" value="1" name="days-${cronGenerator.uuid}" /> día/s
+                entre el día <input type="text" maxlength="2" size="2" value="1" name="start-day-${cronGenerator.uuid}" />
+                y <input type="text" maxlength="2" size="2" value="31" name="end-day-${cronGenerator.uuid}" /></label>
+            `))
+            .append(
+                $(`<em class="far fa-2x fa-minus-square"></em>`)
+                    .on('click', function(event){
+                        defineDaysEventProcess(cronGenerator,event);
+                        if($(this).parent().siblings().length == 2){
+                            repeatDays.find(`input[name="start-day-${cronGenerator.uuid}"]`).val("1");
+                            repeatDays.find(`input[name="end-day-${cronGenerator.uuid}"]`).val("31");
+                            repeatDays.find(`input[name="days-${cronGenerator.uuid}"]`).val("1");
+                        }else{
+                            $(this).parent().remove();
+                        }
+                        updateDayValue(cronGenerator);
+                    })
+            );
+
+        defineDaysEvents(cronGenerator,repeatDays);
+
+        return repeatDays;
+    }
+
+    function makeDaysSection(cronGenerator){
+        //element to select day's range
+        let repeatDaysSubsection = $('<div class="days-subsection days-repeat section-selected" data-selected="false"></div>');
+
+        let checkboxRepeatLabel = $(`<label class="checkbox-label inline"></label>`);
+        let checkBoxRepeatDaysSubsection = $('<input type="checkbox" class="checkbox-select-section">');
+        checkBoxRepeatDaysSubsection.on("click",function(event){
+            if($(event.target).parent().parent().attr("data-selected").localeCompare("true")==0)
+                $(event.target).parent().parent().attr("data-selected","false");
+            else
+                $(event.target).parent().parent().attr("data-selected","true");
+        });
+
+        let htmlTooltipMessageRange = "<em>Elige un rango de días, puedes añadir o eliminar rangos con los botones + y -<em>"
+        let heplIconRepeat=$(`<i class="help-icon fas fa-info-circle" data-html="true" title="${htmlTooltipMessageRange}"></i>`);
+        heplIconRepeat.tooltip();
+        checkboxRepeatLabel
+            .append(checkBoxRepeatDaysSubsection)
+            .append(`<span class="checkbox-custom"></span>`)
+            .append(`<em class="checkbox-message">Seleccionar</em>`)
+            .append(heplIconRepeat);
+
+        let repeatDays = createRepeatDays(cronGenerator);
+
+        let addDay = $('<div class="add-element"></div>')
+            .append($(`<em class="far fa-plus-square fa-2x recalc-class"></em>`)
+                .on('click', function() {
+                    let newRepeatDays = createRepeatDays(cronGenerator);
+                    repeatDaysSubsection.find("div:last").before(newRepeatDays);
+                })
+            );
+
+        repeatDaysSubsection
+            .append(checkboxRepeatLabel)
+            .append(repeatDays)
+            .append(addDay);
+        
+        //element to select many days
+        let selectDays = $('<div class="days-subsection select-days section-selected" data-selected="false"></div>');
+
+        let checkboxSelectLabel = $(`<div><label class="checkbox-label inline"></label></div>`);
+        let checkBoxSelectDaysSubsection = $('<input type="checkbox" class="checkbox-select-section">');
+        checkBoxSelectDaysSubsection.on("click",function(event){
+            if($(event.target).parent().parent().parent().attr("data-selected").localeCompare("true")==0)
+                $(event.target).parent().parent().parent().attr("data-selected","false");
+            else
+                $(event.target).parent().parent().parent().attr("data-selected","true");
+        });
+
+        let htmlTooltipMessageSelection = "<em>Elige una serie de días separados por coma, puedes escribir el número<em>";
+        let heplIconSelect=$(`<i class="help-icon fas fa-info-circle" data-html="true" title="${htmlTooltipMessageSelection}"></i>`);
+        heplIconSelect.tooltip();
+        checkboxSelectLabel
+            .find("label")
+            .append(checkBoxSelectDaysSubsection)
+            .append(`<span class="checkbox-custom"></span>`)
+            .append(`<em class="checkbox-message">Seleccionar</em>`)
+            .append(heplIconSelect);
+
+        selectDays
+            .append(checkboxSelectLabel)
+            .append($(`<label class='selection-label'>El/Los día/s <input type="text" size="20" value="" name="days-${cronGenerator.uuid}" />`));
+
+
+        //parent element which includes all the selectors
+        let days = $('<div></div>')
+            .append(repeatDaysSubsection)
+            .append(selectDays);
+
+        defineDaysEvents(cronGenerator,days);
+
+        return days;
+    }
+
+    function defineDaysEvents(cronGenerator,section) {
+        section.find('input[type="checkbox"],input[type="text"],select,.recalc-class').on("change keyup click",function(event){
+            defineDaysEventProcess(cronGenerator,event)
+        });
+    }
+
+    function defineDaysEventProcess(cronGenerator,event) {
+        let target = $(event.target);
+        let checkbox = target.parents('.section-selected').find('.checkbox-select-section');
+        if(!target.hasClass('checkbox-select-section') && !checkbox.prop('checked')) checkbox.click();
+        updateDayValue(cronGenerator);
+    }
+
+    //days of week section
+    function createRepeatDayOfWeeks(cronGenerator){
+
+        //dayOfWeek select options
+        let dayOfWeekSelectOptions = `
+            <option value="1">Domingo</option>
+            <option value="2">Lunes</option>
+            <option value="3">Martes</option>
+            <option value="4">Miércoles</option>
+            <option value="5">Jueves</option>
+            <option value="6">Viernes</option>
+            <option value="7">Sábado</option>
+        `;
+
+        let repeatDayOfWeeks = $('<div class="inline multiple"></div>');
+
+        repeatDayOfWeeks
+            .append($(`
+                <label>Cada <input type="text" maxlength="2" size="2" value="1" name="dayOfWeeks-${cronGenerator.uuid}" /> día/s
+                entre <select size="1" value="Domingo" name="start-dayOfWeek-${cronGenerator.uuid}">${dayOfWeekSelectOptions}</select>
+                y <select size="1" value="Sábado" name="end-dayOfWeek-${cronGenerator.uuid}">${dayOfWeekSelectOptions}</select>
+                </label>
+            `))
+            .append(
+                $(`<em class="far fa-2x fa-minus-square recalc-class"></em>`)
+                    .on('click', function(event){
+                        defineDayOfWeeksEventProcess(cronGenerator,event);
+                        if($(this).parent().siblings().length == 2){
+                            repeatDayOfWeeks.find('select:first').val("1");
+                            repeatDayOfWeeks.find('select:last').val("7");
+                            repeatDayOfWeeks.find('input').val("1");
+                        }else{
+                            $(this).parent().remove();
+                        }
+                    })
+            );
+
+        repeatDayOfWeeks.find('select:last').val("7"); 
+
+        defineDayOfWeekEvents(cronGenerator,repeatDayOfWeeks);
+
+        return repeatDayOfWeeks;
+    }
+
+    function makeDayOfWeeksSection(cronGenerator){
+        //element to select dayOfWeek's range
+        let repeatDayOfWeeksSubsection = $('<div class="dayOfWeeks-subsection dayOfWeeks-repeat section-selected" data-selected="false"></div>');
+
+        let checkboxRepeatLabel = $(`<label class="checkbox-label inline"></label>`);
+        let checkBoxRepeatDayOfWeeksSubsection = $('<input type="checkbox" class="checkbox-select-section">');
+        checkBoxRepeatDayOfWeeksSubsection.on("click",function(event){
+            if($(event.target).parent().parent().attr("data-selected").localeCompare("true")==0)
+                $(event.target).parent().parent().attr("data-selected","false");
+            else
+                $(event.target).parent().parent().attr("data-selected","true");
+        });
+
+        let htmlTooltipMessageRange = "<em>Elige un rango de días, puedes añadir o eliminar rangos con los botones + y -<em>"
+        let heplIconRepeat=$(`<i class="help-icon fas fa-info-circle" data-html="true" title="${htmlTooltipMessageRange}"></i>`);
+        heplIconRepeat.tooltip();
+        checkboxRepeatLabel
+            .append(checkBoxRepeatDayOfWeeksSubsection)
+            .append(`<span class="checkbox-custom"></span>`)
+            .append(`<em class="checkbox-message">Seleccionar</em>`)
+            .append(heplIconRepeat);
+
+        let repeatDayOfWeeks = createRepeatDayOfWeeks(cronGenerator);
+
+        let addDayOfWeek = $('<div class="add-element"></div>')
+            .append($(`<em class="far fa-plus-square fa-2x recalc-class"></em>`)
+                .on('click', function() {
+                    let newRepeatDayOfWeeks = createRepeatDayOfWeeks(cronGenerator);
+                    repeatDayOfWeeksSubsection.find("div:last").before(newRepeatDayOfWeeks);
+                })
+            );
+
+        repeatDayOfWeeksSubsection
+            .append(checkboxRepeatLabel)
+            .append(repeatDayOfWeeks)
+            .append(addDayOfWeek);
+        
+        //element to select many dayOfWeeks
+        let selectDayOfWeeks = $('<div class="dayOfWeeks-subsection select-dayOfWeeks section-selected" data-selected="false"></div>');
+
+        let checkboxSelectLabel = $(`<div><label class="checkbox-label inline"></label></div>`);
+        let checkBoxSelectDayOfWeeksSubsection = $('<input type="checkbox" class="checkbox-select-section">');
+        checkBoxSelectDayOfWeeksSubsection.on("click",function(event){
+            if($(event.target).parent().parent().parent().attr("data-selected").localeCompare("true")==0)
+                $(event.target).parent().parent().parent().attr("data-selected","false");
+            else
+                $(event.target).parent().parent().parent().attr("data-selected","true");
+        });
+
+        let htmlTooltipMessageSelection = "<em>Elige una serie de días separados por coma, puedes escribir el número o su nombre<em>";
+        let heplIconSelect=$(`<i class="help-icon fas fa-info-circle" data-html="true" title="${htmlTooltipMessageSelection}"></i>`);
+        heplIconSelect.tooltip();
+        checkboxSelectLabel
+            .find("label")
+            .append(checkBoxSelectDayOfWeeksSubsection)
+            .append(`<span class="checkbox-custom"></span>`)
+            .append(`<em class="checkbox-message">Seleccionar</em>`)
+            .append(heplIconSelect);
+
+        selectDayOfWeeks
+            .append(checkboxSelectLabel)
+            .append($(`<label class='selection-label'>El/Los día/s <input type="text" size="20" value="" name="dayOfWeeks-${cronGenerator.uuid}" />`));
+
+
+        //parent element which includes all the selectors
+        let dayOfWeeks = $('<div></div>')
+            .append(repeatDayOfWeeksSubsection)
+            .append(selectDayOfWeeks);
+
+        defineDayOfWeekEvents(cronGenerator,dayOfWeeks);
+
+        return dayOfWeeks;
+    }
+
+    function defineDayOfWeekEvents(cronGenerator,section) {
+        section.find('input[type="checkbox"],input[type="text"],select,.recalc-class').on("change keyup click",function(event){
+            defineDayOfWeeksEventProcess(cronGenerator,event)
+        });
+    }
+
+    function defineDayOfWeeksEventProcess(cronGenerator,event) {
+        let target = $(event.target);
+        let checkbox = target.parents('.section-selected').find('.checkbox-select-section');
+        if(!target.hasClass('checkbox-select-section') && !checkbox.prop('checked')) checkbox.click();
+        updateDayOfWeekValue(cronGenerator);
+    }
+
+    //months section
     function createRepeatMonths(cronGenerator){
 
         //month select options
@@ -1040,7 +1492,7 @@
         updateMonthValue(cronGenerator);
     }
 
-    //create years range element
+    //years section
     function createRepeatYears(cronGenerator){
 
         let repeatYears = $('<div class="inline multiple"></div>');
@@ -1132,7 +1584,7 @@
 
         selectYears
             .append(checkboxSelectLabel)
-            .append($(`<label class='selection-label'>El/Los segundo/s <input type="text" size="20" value="" name="years-${cronGenerator.uuid}" />`));
+            .append($(`<label class='selection-label'>El/Los años/s <input type="text" size="20" value="" name="years-${cronGenerator.uuid}" />`));
 
 
         //parent element which includes all the selectors
@@ -1189,14 +1641,14 @@
         if (cronGenerator.allOptions.days.allowConfigure){
             let card = newAccordionCard(cronGenerator, 'days');
             card.header.text('DÍAS')
-            card.body.text('Días')
+            card.body.html(makeDaysSection(cronGenerator))
         }
 
         // Days of Week
         if (cronGenerator.allOptions.daysOfWeek.allowConfigure){
-            let card = newAccordionCard(cronGenerator, 'days-week');
+            let card = newAccordionCard(cronGenerator, 'dayOfWeeks');
             card.header.text('DÍAS DE LA SEMANA')
-            card.body.text('Días de la semana')
+            card.body.html(makeDayOfWeeksSection(cronGenerator))
         }
 
         // Months
