@@ -433,7 +433,73 @@
                     inputElementValues.push(currentSelectValue);
                 }
             }
-            finalDayValue+=inputElementValues.join(',');
+            finalDayValue+=inputElementValues.join(',')+",";
+        }
+
+        let selectDaysBeforeElement = dayCard.find(".select-daysBefore");
+        let selectDaysBeforeCheckBox = selectDaysBeforeElement.find("input[type=checkbox]");
+        //if daysBefore selector checkbox is checked
+        if(selectDaysBeforeCheckBox.prop("checked") && finalDayValue.localeCompare("*")!=0){
+            let inputElement=$(selectDaysBeforeElement).find(`input[name="daysBeforeMonthEnds-${cronGenerator.uuid}"]`);
+            inputElement.removeClass("invalid-input");
+            let inputElementSplit = inputElement.val().split(',');
+            let inputElementValues = [];
+            let insertValue = true;
+            //for each value between commas
+            for (var i = 0; i < inputElementSplit.length && insertValue; ++i){
+                let currentSelectValue = Number(inputElementSplit[i]);
+                //if is not an integet between 1 and 31
+                if(inputElementSplit[i].localeCompare("")==0 || !Number.isInteger(currentSelectValue) || currentSelectValue < 0 || currentSelectValue > 30){
+                    //can't parse, mark as invalid
+                    insertValue = false;
+                    inputElement.addClass("invalid-input");
+                }
+
+                let valueToInsert = "";
+                if(currentSelectValue == 0){
+                    valueToInsert="L";
+                }else{
+                    valueToInsert="L-"+currentSelectValue;
+                }
+                if(finalDayValue.localeCompare("*")!=0 && insertValue && !inputElementValues.includes(valueToInsert)){
+                    inputElementValues.push(valueToInsert);
+                }
+            }
+            finalDayValue+=inputElementValues.join(',')+",";
+        }
+
+        let selectLastWeekdayElement = dayCard.find(".select-daysLastWeekday");
+        let selectLastWeekdayCheckBox = selectLastWeekdayElement.find("input[type=checkbox]");
+        //if daysBefore selector checkbox is checked
+        if(selectLastWeekdayCheckBox.prop("checked") && finalDayValue.localeCompare("*")!=0){
+            finalDayValue+="LW,";
+        }
+
+        let selectNearWeekdayElement = dayCard.find(".select-daysNearWeekday");
+        let selectNearWeekdayCheckBox = selectNearWeekdayElement.find("input[type=checkbox]");
+        //if daysBefore selector checkbox is checked
+        if(selectNearWeekdayCheckBox.prop("checked") && finalDayValue.localeCompare("*")!=0){
+            let inputElement=$(selectNearWeekdayElement).find(`input[name="daysNearWeekday-${cronGenerator.uuid}"]`);
+            inputElement.removeClass("invalid-input");
+            let inputElementSplit = inputElement.val().split(',');
+            let inputElementValues = [];
+            let insertValue = true;
+            //for each value between commas
+            for (var i = 0; i < inputElementSplit.length && insertValue; ++i){
+                let currentSelectValue = Number(inputElementSplit[i]);
+                //if is not an integet between 1 and 31
+                if(inputElementSplit[i].localeCompare("")==0 || !Number.isInteger(currentSelectValue) || currentSelectValue < 1 || currentSelectValue > 31){
+                    //can't parse, mark as invalid
+                    insertValue = false;
+                    inputElement.addClass("invalid-input");
+                }
+
+                let valueToInsert = currentSelectValue+"W";
+                if(finalDayValue.localeCompare("*")!=0 && insertValue && !inputElementValues.includes(valueToInsert)){
+                    inputElementValues.push(valueToInsert);
+                }
+            }
+            finalDayValue+=inputElementValues.join(',')+",";
         }
 
         //delete last comma
@@ -1202,10 +1268,90 @@
             .append($(`<label class='selection-label'>El/Los día/s <input type="text" size="20" value="" name="days-${cronGenerator.uuid}" />`));
 
 
+        //section to select days before month ends
+        let sectionDaysBefore = $('<div class="days-subsection select-daysBefore section-selected" data-selected="false"></div>');
+        let checkboxDaysBeforeLabel = $(`<div><label class="checkbox-label inline"></label></div>`);
+        let checkBoxDaysBeforeSubsection = $('<input type="checkbox" class="checkbox-select-section">');
+        checkBoxDaysBeforeSubsection.on("click",function(event){
+            if($(event.target).parent().parent().parent().attr("data-selected").localeCompare("true")==0)
+                $(event.target).parent().parent().parent().attr("data-selected","false");
+            else
+                $(event.target).parent().parent().parent().attr("data-selected","true");
+        });
+
+        let htmlTooltipMessageDaysBefore = "<em>Elige una serie de días contanto desde el último día del mes<em>";
+        let heplIconDaysBefore=$(`<i class="help-icon fas fa-info-circle" data-html="true" title="${htmlTooltipMessageDaysBefore}"></i>`);
+        heplIconDaysBefore.tooltip();
+        checkboxDaysBeforeLabel
+            .find("label")
+            .append(checkBoxDaysBeforeSubsection)
+            .append(`<span class="checkbox-custom"></span>`)
+            .append(`<em class="checkbox-message">Seleccionar</em>`)
+            .append(heplIconDaysBefore);
+
+        sectionDaysBefore
+            .append(checkboxDaysBeforeLabel)
+            .append($(`<label class='selection-label'> <input type="text" size="20" value="" name="daysBeforeMonthEnds-${cronGenerator.uuid}" /> día/s antes de que acabe el mes</label>`));
+
+        //section to select last weekday of month
+        let sectionLastWeekday = $('<div class="days-subsection select-daysLastWeekday section-selected" data-selected="false"></div>');
+        let checkboxLastWeekdayLabel = $(`<div><label class="checkbox-label inline"></label></div>`);
+        let checkBoxLastWeekdaySubsection = $('<input type="checkbox" class="checkbox-select-section">');
+        checkBoxLastWeekdaySubsection.on("click",function(event){
+            if($(event.target).parent().parent().parent().attr("data-selected").localeCompare("true")==0)
+                $(event.target).parent().parent().parent().attr("data-selected","false");
+            else
+                $(event.target).parent().parent().parent().attr("data-selected","true");
+        });
+
+        let htmlTooltipMessageLastWeekday = "<em>El último día laborable del mes<em>";
+        let heplIconLastWeekday=$(`<i class="help-icon fas fa-info-circle" data-html="true" title="${htmlTooltipMessageLastWeekday}"></i>`);
+        heplIconLastWeekday.tooltip();
+        checkboxLastWeekdayLabel
+            .find("label")
+            .append(checkBoxLastWeekdaySubsection)
+            .append(`<span class="checkbox-custom"></span>`)
+            .append(`<em class="checkbox-message">Seleccionar</em>`)
+            .append(heplIconLastWeekday);
+
+        sectionLastWeekday
+            .append(checkboxLastWeekdayLabel)
+            .append($(`<label class='selection-label'>El último día laborable del mes</label>`));
+
+
+        //section to select days near weekday day
+        let sectionNearWeekday = $('<div class="days-subsection select-daysNearWeekday section-selected" data-selected="false"></div>');
+        let checkboxNearWeekdayLabel = $(`<div><label class="checkbox-label inline"></label></div>`);
+        let checkBoxNearWeekdaySubsection = $('<input type="checkbox" class="checkbox-select-section">');
+        checkBoxNearWeekdaySubsection.on("click",function(event){
+            if($(event.target).parent().parent().parent().attr("data-selected").localeCompare("true")==0)
+                $(event.target).parent().parent().parent().attr("data-selected","false");
+            else
+                $(event.target).parent().parent().parent().attr("data-selected","true");
+        });
+
+        let htmlTooltipMessageNearWeekday = "<em>Elige una serie de días del mes para seleccionar los días laborables más cercanos<em>";
+        let heplIconNearWeekday=$(`<i class="help-icon fas fa-info-circle" data-html="true" title="${htmlTooltipMessageNearWeekday}"></i>`);
+        heplIconNearWeekday.tooltip();
+        checkboxNearWeekdayLabel
+            .find("label")
+            .append(checkBoxNearWeekdaySubsection)
+            .append(`<span class="checkbox-custom"></span>`)
+            .append(`<em class="checkbox-message">Seleccionar</em>`)
+            .append(heplIconNearWeekday);
+
+        sectionNearWeekday
+            .append(checkboxNearWeekdayLabel)
+            .append($(`<label class='selection-label'> Los días laborables más cercanos al/los día/s <input type="text" size="20" value="" name="daysNearWeekday-${cronGenerator.uuid}" /> del mes</label>`));
+
+
         //parent element which includes all the selectors
         let days = $('<div></div>')
             .append(repeatDaysSubsection)
-            .append(selectDays);
+            .append(selectDays)
+            .append(sectionDaysBefore)
+            .append(sectionLastWeekday)
+            .append(sectionNearWeekday);
 
         defineDaysEvents(cronGenerator,days);
 
