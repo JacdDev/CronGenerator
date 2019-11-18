@@ -15,14 +15,6 @@
         return uuid;
     }
 
-    //switch logic
-    function switchLogic(target){
-        let sectionSelected = $(target).parents('.section-selected');
-        let card = sectionSelected.parent();
-        card.find('.section-selected').attr("data-selected", "false");
-        sectionSelected.attr("data-selected", "true");
-    }
-
     function newAccordionCard(cronGenerator, id) {
         let card = {};
         let referedId = id + '-' + cronGenerator.uuid;
@@ -575,7 +567,7 @@
         let selectDayOfWeeksElement = dayOfWeekCard.find(".select-dayOfWeeks");
         let selectDayOfWeeksCheckBox = selectDayOfWeeksElement.find("input[type=checkbox]");
         //if dayOfWeek selector checkbox is checked
-        if(selectDayOfWeeksCheckBox.prop("checked")){
+        if(selectDayOfWeeksCheckBox.prop("checked") && finalDayOfWeekValue.localeCompare("*")!=0){
             let inputElement=selectDayOfWeeksElement.find('input:last');
             inputElement.removeClass("invalid-input");
             let inputElementSplit = inputElement.val().split(',');
@@ -600,7 +592,26 @@
                     inputElementValues.push(currentSelectValue);
                 }
             }
-            finalDayOfWeekValue+=inputElementValues.join(',');
+            finalDayOfWeekValue+=inputElementValues.join(',')+",";
+        }
+
+        let dayOfWeeksRepeatOrdinalElement = dayOfWeekCard.find(".dayOfWeeks-repeatOrdinal");
+        let dayOfWeeksRepeatOrdinalCheckBox = dayOfWeeksRepeatOrdinalElement.find("input[type=checkbox]");
+        //if range checkbox is checked
+        if(dayOfWeeksRepeatOrdinalCheckBox.prop("checked")){
+            let inlineMultipleElement = dayOfWeeksRepeatOrdinalElement.find(".inline.multiple");
+            //for each selector
+            for (var i = 0; i < inlineMultipleElement.length && finalDayOfWeekValue.localeCompare("*")!=0; ++i){
+                let firstSelectElement=$(inlineMultipleElement[i]).find('select:first');
+                let secondSelectElement=$(inlineMultipleElement[i]).find('select:last');
+
+                if(firstSelectElement.val().localeCompare("L") == 0){
+                    finalDayOfWeekValue += secondSelectElement.val()+"L";
+                }else{
+                    finalDayOfWeekValue += secondSelectElement.val()+"#"+firstSelectElement.val();
+                }
+                finalDayOfWeekValue+=",";   
+            }
         }
 
         //delete last comma
@@ -1415,6 +1426,55 @@
         return repeatDayOfWeeks;
     }
 
+    function createRepeatOrdinalDayOfWeeks(cronGenerator){
+
+        //dayOfWeek select options
+        let dayOfWeekSelectOptions = `
+            <option value="1">Domingo</option>
+            <option value="2">Lunes</option>
+            <option value="3">Martes</option>
+            <option value="4">Miércoles</option>
+            <option value="5">Jueves</option>
+            <option value="6">Viernes</option>
+            <option value="7">Sábado</option>
+        `;
+
+        let dayOfWeekPositionOptions = `
+            <option value="1">Primer</option>
+            <option value="2">Segundo</option>
+            <option value="3">Tercer</option>
+            <option value="4">Cuarto</option>
+            <option value="5">Quinto</option>
+            <option value="L">Último</option>
+        `;
+
+        let repeatOrdinalDayOfWeeks = $('<div class="inline multiple"></div>');
+
+        repeatOrdinalDayOfWeeks
+            .append($(`
+                <label>El <select size="1" value="Primer" name="dayOfWeeks-OrdinalPosition-${cronGenerator.uuid}" >${dayOfWeekPositionOptions}</select>
+                <select size="1" value="Domingo" name="dayOfWeek-OrdinalDay-${cronGenerator.uuid}">${dayOfWeekSelectOptions}</select>
+                de cada mes
+                </label>
+            `))
+            .append(
+                $(`<em class="far fa-2x fa-minus-square recalc-class"></em>`)
+                    .on('click', function(event){
+                        defineDayOfWeeksEventProcess(cronGenerator,event);
+                        if($(this).parent().siblings().length == 2){
+                            repeatOrdinalDayOfWeeks.find('select:first').val("1");
+                            repeatOrdinalDayOfWeeks.find('select:last').val("1");
+                        }else{
+                            $(this).parent().remove();
+                        }
+                    })
+            );
+
+        defineDayOfWeekEvents(cronGenerator,repeatOrdinalDayOfWeeks);
+
+        return repeatOrdinalDayOfWeeks;
+    }
+
     function makeDayOfWeeksSection(cronGenerator){
         //element to select dayOfWeek's range
         let repeatDayOfWeeksSubsection = $('<div class="dayOfWeeks-subsection dayOfWeeks-repeat section-selected" data-selected="false"></div>');
@@ -1479,10 +1539,47 @@
             .append($(`<label class='selection-label'>El/Los día/s <input type="text" size="20" value="" name="dayOfWeeks-${cronGenerator.uuid}" />`));
 
 
+        //element to select ordinal day of week
+        let repeatDayOfWeeksOrdinalSubsection = $('<div class="dayOfWeeks-subsection dayOfWeeks-repeatOrdinal section-selected" data-selected="false"></div>');
+
+        let checkboxRepeatOrdinalLabel = $(`<label class="checkbox-label inline"></label>`);
+        let checkBoxRepeatOrdinalDayOfWeeksSubsection = $('<input type="checkbox" class="checkbox-select-section">');
+        checkBoxRepeatOrdinalDayOfWeeksSubsection.on("click",function(event){
+            if($(event.target).parent().parent().attr("data-selected").localeCompare("true")==0)
+                $(event.target).parent().parent().attr("data-selected","false");
+            else
+                $(event.target).parent().parent().attr("data-selected","true");
+        });
+
+        let htmlTooltipMessageOrdinal = "<em>Elige un día de la semana y su posición en el mes, puedes añadir o eliminar elementos con los botones + y -<em>"
+        let heplIconRepeatOrdinal=$(`<i class="help-icon fas fa-info-circle" data-html="true" title="${htmlTooltipMessageOrdinal}"></i>`);
+        heplIconRepeatOrdinal.tooltip();
+        checkboxRepeatOrdinalLabel
+            .append(checkBoxRepeatOrdinalDayOfWeeksSubsection)
+            .append(`<span class="checkbox-custom"></span>`)
+            .append(`<em class="checkbox-message">Seleccionar</em>`)
+            .append(heplIconRepeatOrdinal);
+
+        let repeatOrdinalDayOfWeeks = createRepeatOrdinalDayOfWeeks(cronGenerator);
+
+        let addOrdinalDayOfWeek = $('<div class="add-element"></div>')
+            .append($(`<em class="far fa-plus-square fa-2x recalc-class"></em>`)
+                .on('click', function() {
+                    let newRepeatOrdinalDayOfWeeks = createRepeatOrdinalDayOfWeeks(cronGenerator);
+                    repeatDayOfWeeksOrdinalSubsection.find("div:last").before(newRepeatOrdinalDayOfWeeks);
+                })
+            );
+
+        repeatDayOfWeeksOrdinalSubsection
+            .append(checkboxRepeatOrdinalLabel)
+            .append(repeatOrdinalDayOfWeeks)
+            .append(addOrdinalDayOfWeek);
+
         //parent element which includes all the selectors
         let dayOfWeeks = $('<div></div>')
             .append(repeatDayOfWeeksSubsection)
-            .append(selectDayOfWeeks);
+            .append(selectDayOfWeeks)
+            .append(repeatDayOfWeeksOrdinalSubsection);
 
         defineDayOfWeekEvents(cronGenerator,dayOfWeeks);
 
