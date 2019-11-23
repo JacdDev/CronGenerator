@@ -15,6 +15,26 @@
         return uuid;
     }
 
+    function cronValueToString(cronGenerator){
+        let stringValue = "";
+        if(cronGenerator.allOptions.seconds.includeValue)
+            stringValue+=cronGenerator.value.seconds+" ";
+        if(cronGenerator.allOptions.minutes.includeValue)
+            stringValue+=cronGenerator.value.minutes+" ";
+        if(cronGenerator.allOptions.hours.includeValue)
+            stringValue+=cronGenerator.value.hours+" ";
+        if(cronGenerator.allOptions.days.includeValue)
+            stringValue+=cronGenerator.value.days+" ";
+        if(cronGenerator.allOptions.months.includeValue)
+            stringValue+=cronGenerator.value.months+" ";
+        if(cronGenerator.allOptions.daysOfWeek.includeValue)
+            stringValue+=cronGenerator.value.daysOfWeek+" ";
+        if(cronGenerator.allOptions.years.includeValue)
+            stringValue+=cronGenerator.value.years+" ";
+        stringValue = stringValue.substring(0, stringValue.length-1);
+        return stringValue;
+    }
+
     function newAccordionCard(cronGenerator, id) {
         let card = {};
         let referedId = id + '-' + cronGenerator.uuid;
@@ -57,7 +77,7 @@
     }
 
     function updateValueElement(cronGenerator){
-        cronGenerator.resultJquery.text(Object.values(cronGenerator.value).join(' '));
+        cronGenerator.resultJquery.text(cronValueToString(cronGenerator));
     }
 
     function updateSecondValue(cronGenerator){
@@ -152,7 +172,9 @@
         finalSecondValue ="*";
 
         cronGenerator.value.seconds = finalSecondValue;
-        updateValueElement(cronGenerator);
+
+        if(cronGenerator.allOptions.showValueElement)
+            updateValueElement(cronGenerator);
     }
 
     function updateMinuteValue(cronGenerator){
@@ -247,7 +269,9 @@
         finalMinuteValue ="*";
 
         cronGenerator.value.minutes = finalMinuteValue;
-        updateValueElement(cronGenerator);
+
+        if(cronGenerator.allOptions.showValueElement)
+            updateValueElement(cronGenerator);
     }
 
     function updateHourValue(cronGenerator){
@@ -342,7 +366,9 @@
         finalHourValue ="*";
 
         cronGenerator.value.hours = finalHourValue;
-        updateValueElement(cronGenerator);
+
+        if(cronGenerator.allOptions.showValueElement)
+            updateValueElement(cronGenerator);
     }
 
     function updateDayValue(cronGenerator){
@@ -511,7 +537,8 @@
         var daysOfWeekSection =$(".dayOfWeeks-subsection")
         daysOfWeekSection.attr("data-selected",false);
 
-        updateValueElement(cronGenerator);
+        if(cronGenerator.allOptions.showValueElement)
+            updateValueElement(cronGenerator);
     }
 
     function updateDayOfWeekValue(cronGenerator){
@@ -630,7 +657,8 @@
          var daysSection =$(".days-subsection")
          daysSection.attr("data-selected",false);
 
-        updateValueElement(cronGenerator);
+        if(cronGenerator.allOptions.showValueElement)
+            updateValueElement(cronGenerator);
     }
     
     function updateMonthValue(cronGenerator){
@@ -728,7 +756,9 @@
             finalMonthValue ="*";
 
         cronGenerator.value.months = finalMonthValue;
-        updateValueElement(cronGenerator);
+
+        if(cronGenerator.allOptions.showValueElement)
+            updateValueElement(cronGenerator);
     }
 
     function updateYearValue(cronGenerator){
@@ -823,7 +853,9 @@
         finalYearValue ="*";
 
         cronGenerator.value.years = finalYearValue;
-        updateValueElement(cronGenerator);
+
+        if(cronGenerator.allOptions.showValueElement)
+            updateValueElement(cronGenerator);
     }
 
     /**********************************/
@@ -1909,10 +1941,12 @@
         }
 
         // Result
-        cronGenerator.resultJquery = $('<div class="result"></div>');
-        cronGenerator.resultJquery.text(Object.values(cronGenerator.value).join(' '));
+        if(cronGenerator.allOptions.showValueElement){
+            cronGenerator.resultJquery = $('<div class="result"></div>');
+            updateValueElement(cronGenerator);
+            cronGenerator.accordion.append(cronGenerator.resultJquery);
+        }
 
-        cronGenerator.accordion.append(cronGenerator.resultJquery);
         cronGenerator.jqueryElement.append(cronGenerator.accordion);
     }
 
@@ -1922,32 +1956,61 @@
     /*********************************/
 
 	let defaultOptions = {
-        initial : "* * * * * ? *",
         seconds : {
+            includeValue: true,
+            initialValue: '*',
             allowConfigure  : true,
         },
         minutes : {
+            includeValue: true,
+            initialValue: '*',
             allowConfigure  : true,
         },
         hours : {
+            includeValue: true,
+            initialValue: '*',
             allowConfigure  : true,
         },
         days : {
+            includeValue: true,
+            initialValue: '*',
             allowConfigure  : true,
         },
         daysOfWeek : {
+            includeValue: true,
+            initialValue: '?',
             allowConfigure  : true,
         },
         months : {
+            includeValue: true,
+            initialValue: '*',
             allowConfigure  : true,
         },
         years : {
+            includeValue: true,
+            initialValue: '*',
             allowConfigure  : true,
         },
         width : '100%',
-        customValues : undefined,
-        onChange: undefined
+        showValueElement: true,
 	};
+
+    let methods = {
+        init : function(options) {
+            if(this[0].cronGenerator == undefined)
+                this[0].cronGenerator = new CronGenerator(this, options);
+            return this;
+        },
+        getCronGenerator : function() {
+            return this[0].cronGenerator;
+        },
+        getValue : function(component) {
+            if(component == undefined)
+                return cronValueToString(this[0].cronGenerator);//Object.values(this[0].cronGenerator.value).join(' ');
+            else
+                return this[0].cronGenerator.value[component];
+        },
+    }
 
     function CronGenerator(element, opts = {}) {
         let allOptions = {...defaultOptions, ...opts}
@@ -1957,15 +2020,14 @@
         this.element = element;
         this.jqueryElement=$(element);
         this.allOptions=allOptions;
-        let splitValue = allOptions.initial.split(' ');
         this.value={};
-        this.value.seconds = splitValue[0];
-        this.value.minutes = splitValue[1];
-        this.value.hours = splitValue[2];
-        this.value.days = splitValue[3];
-        this.value.months = splitValue[4];
-        this.value.daysOfWeek = splitValue[5];
-        this.value.years = splitValue[6];
+        this.value.seconds = this.allOptions.seconds.initialValue;
+        this.value.minutes = this.allOptions.minutes.initialValue;
+        this.value.hours = this.allOptions.hours.initialValue;
+        this.value.days = this.allOptions.days.initialValue;
+        this.value.months = this.allOptions.months.initialValue;
+        this.value.daysOfWeek = this.allOptions.daysOfWeek.initialValue;
+        this.value.years = this.allOptions.years.initialValue;
         makeConfigurator(this);
     };
 
@@ -1977,16 +2039,15 @@
         return this.element;
     };
 
-    //Returns the CronGenerator associated to element
-    //If many elements are passed, it returns a list of cronGenerators
-    $.fn.cronGenerator = function(options) {
-        cronGenerators = [];
-
-        $.each($(this), function(){
-            cronGenerators.push(new CronGenerator(this, options));
-        });
-
-        return cronGenerators;
+    $.fn.cronGenerator = function(methodOrOptions) {
+        if ( methods[methodOrOptions] ) {
+            return methods[ methodOrOptions ].apply( this, Array.prototype.slice.call( arguments, 1 ));
+        } else if ( typeof methodOrOptions === 'object' || ! methodOrOptions ) {
+            // Default to "init"
+            return methods.init.apply( this, arguments );
+        } else {
+            $.error( 'Method ' +  methodOrOptions + ' does not exist on cronGenerator' );
+        }   
     };
 
 })(jQuery);
