@@ -14,7 +14,7 @@ jQuery y realiza una llamada a la función ```cronGenerator()```
 ```javascript
 $("#myDiv").cronGenerator();
 ```
-Puedes encontrar un ejemplo completo en [index.html](../index.html)
+Puedes encontrar un ejemplo completo en [index.html](index.html)
 
 ## Parámetros
 Puedes editar algunas opciones de la interfaz enviando parámetros a la función,
